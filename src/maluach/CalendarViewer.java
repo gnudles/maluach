@@ -354,7 +354,6 @@ public class CalendarViewer extends DateShowers implements ScreenView
 /*        c_wakeUpPrayer=new ScreenCommand(ScriptedTextViewer.getInstance(), "/data/shahar" ,"ברכות השחר", 10);
         c_birkatMazon=new ScreenCommand(ScriptedTextViewer.getInstance(), "/data/mazon" ,"ברכת המזון", 11);
         c_thilim=new ScreenCommand(Psalms.getInstance(), null ,"תהילים",12);*/
-        //bereshit //c_openHumashBereshit=new ScreenCommand(ScriptedTextViewer.getInstance(), "/data/bereshit" ,"בראשית", 12);
         c_openDaySelector=new ScreenCommand(DateSelector.getInstance(),null,"בחר תאריך",1);
         c_openPreferences =new ScreenCommand(PreferencesForm.getInstance(),null,"הגדרות",9);
 

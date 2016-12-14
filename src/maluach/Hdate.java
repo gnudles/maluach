@@ -56,7 +56,7 @@ public class Hdate
         30/*tishrey*/, 29, 30/*kislev*/, 29, 30, 29/*adar*/, 30/*nissan*/, 29, 30, 29, 30, 29, /*adar1 */ 30,/*adar2*/ 29
     };
     byte month_holydays[] = null;
-    static final String[] day_names =
+    public static final String[] day_names =
     {
         "ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"
     };

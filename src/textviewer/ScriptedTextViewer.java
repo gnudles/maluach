@@ -10,7 +10,6 @@ import java.io.InputStream;
 import javax.microedition.lcdui.*;
 import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.game.Sprite;
-import javax.microedition.location.Landmark;
 import maluach.CommandPool;
 import maluach.DisplayBack;
 import list.DynamicIntArray;
