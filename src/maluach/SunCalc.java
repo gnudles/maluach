@@ -193,7 +193,7 @@ public class SunCalc
 
         double HAarg = (Math.cos(SunTimes.degToRad(90.833)) / (Math.cos(latRad) * Math.cos(sdRad)) - Math.tan(latRad) * Math.tan(sdRad));
 
-        double HA = (SunTimes.acos(Math.cos(SunTimes.degToRad(90.833)) / (Math.cos(latRad) * Math.cos(sdRad)) - Math.tan(latRad) * Math.tan(sdRad)));
+        double HA = (Trig.acos(Math.cos(SunTimes.degToRad(90.833)) / (Math.cos(latRad) * Math.cos(sdRad)) - Math.tan(latRad) * Math.tan(sdRad)));
 
         return HA;		// in radians
     }

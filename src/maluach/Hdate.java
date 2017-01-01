@@ -1195,7 +1195,7 @@ public class Hdate
                 month_holydays[shoaday] = 24;
             }
         }
-        else if (hd_mon == 4 /* tevet */)
+        else if (hd_mon == 4 /* tevet */)//hannukah fix
         {
             if (get_hd_prev_month_size() == 29)
             {

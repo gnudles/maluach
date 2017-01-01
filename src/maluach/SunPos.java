@@ -61,7 +61,7 @@ public class SunPos
         {
             csz = -1.0;
         }
-        double zenith = SunTimes.radToDeg(SunTimes.acos(csz));
+        double zenith = SunTimes.radToDeg(Trig.acos(csz));
         double azDenom = (Math.cos(SunTimes.degToRad(latitude)) * Math.sin(SunTimes.degToRad(zenith)));
         double azimuth;
         if (Math.abs(azDenom) > 0.001)
@@ -78,7 +78,7 @@ public class SunPos
                     azRad = 1.0;
                 }
             }
-            azimuth = 180.0 - SunTimes.radToDeg(SunTimes.acos(azRad));
+            azimuth = 180.0 - SunTimes.radToDeg(Trig.acos(azRad));
             if (hourAngle > 0.0)
             {
                 azimuth = -azimuth;

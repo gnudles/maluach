@@ -51,79 +51,8 @@ public class SunTimes
 
     }
     
-    public static double asin(double x)
-    {
-        return 2 * atan2(x, 1 + Math.sqrt(1 - x * x));
-    }
 
-    public static double acos(double x)
-    {
-        return 2 * atan2(Math.sqrt(1 - x * x), 1 + x);
-    }
 
-    public static double atan2(double y, double x)
-    {
-        int sign;
-        double d = Math.sqrt(x * x + y * y);
-        double z;
-        double addit;
-        if(y<x)
-        {   
-            z = y / (d + x);
-            sign=1;
-            addit=0;
-        }
-        else
-        {
-            z = x / (d + y);
-            sign=-1;
-            addit=Math.PI/2;
-        }
-        double z2 = z * z;
-        double z22 = 2 * z2;
-        double last_mult = 2 * z / (1 + z2);
-        int k;
-        double mult = 1, atan = 1;
-        for (k = 1; k <= 45; k++)//precision of 45 iterations is enough
-        {
-            mult *= k * z22 / ((2 * k + 1) * (1 + z2));
-            atan += mult;
-        }
-        atan= addit+sign * atan * last_mult;
-
-        if (atan > Math.PI)
-            atan -=2*Math.PI;
-        else
-            if (atan<-Math.PI)
-                atan+=2*Math.PI;
-        return atan;
-    }
-    public static double fast_atan2(double y, double x)
-    {
-	if ( x == 0.0f )
-	{
-		if ( y > 0.0f ) return Math.PI/2;
-		if ( y == 0.0f ) return 0.0f;
-		return -Math.PI/2;
-	}
-	double atan;
-	double z = y/x;
-	if ( Math.abs( z ) < 1.0f )
-	{
-		atan = z/(1.0f + 0.2809f*z*z);
-		if ( x < 0.0f )
-		{
-			if ( y < 0.0f ) return atan - Math.PI;
-			return atan + Math.PI;
-		}
-	}
-	else
-	{
-		atan = Math.PI/2 - z/(z*z + 0.2809f);
-		if ( y < 0.0f ) return atan - Math.PI;
-	}
-	return atan;
-    }
     
     public static double radToDeg(double angleRad)
     {
@@ -223,14 +152,14 @@ public class SunTimes
     {
         double tananum = (Math.cos(degToRad(my_e)) * Math.sin(degToRad(my_lambda)));
         double tanadenom = (Math.cos(degToRad(my_lambda)));
-        my_alpha = radToDeg(atan2(tananum, tanadenom));
+        my_alpha = radToDeg(Trig.atan2(tananum, tanadenom));
         // in degrees
     }
 
     private void calcSunDeclination()
     {
         double sint = Math.sin(degToRad(my_e)) * Math.sin(degToRad(my_lambda));
-        my_theta = radToDeg(asin(sint));
+        my_theta = radToDeg(Trig.asin(sint));
         // in degrees
     }
 

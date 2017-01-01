@@ -61,7 +61,10 @@ public class MaluachPreferences
         return;
 
     }
-
+    static public boolean HebrewInteface()
+    {
+        return System.getProperty( "microedition.locale" ).startsWith("he");
+    }
     static public void setFromLAPI()
     {
         LocationAPI locationer = new LocationAPI();
@@ -146,66 +149,72 @@ public class MaluachPreferences
         }
     }
 
-    static public float GetTimeZoneAt(Hdate date)
+    static public float GetDSTAt(Hdate date)
     {
+        final float DST=1.0f;
+        final float NODST=0.0f;
         if (date.get_gd_year()>2005)
         {
             if (date.get_gd_year()<2013)
             {
                 int gd_m=date.get_gd_month();
                 if (gd_m>=4 && gd_m<=8)
-                    return 3.0f;//summer
+                    return DST;//summer
                 if (gd_m<3 || gd_m>=11)
-                    return 2.0f;
+                    return NODST;
                 if(gd_m==3)
                 {
                     int gd_d=date.get_gd_day();
                     int doff=(33+date.get_day_in_week()-gd_d)%7;
                     if (gd_d>31-doff)
-                        return 3.0f;//summer
-                    return 2.0f;
+                        return DST;//summer
+                    return NODST;
                 }
                 int hd_m=date.get_hd_month();
                 if (hd_m>=11)
-                    return 3.0f;//summer
+                    return DST;//summer
                 if (hd_m<=4 && hd_m >=2)
-                    return 2.0f;
+                    return NODST;
                 if (hd_m ==1)
                 {
                     int hd_d=date.get_hd_day_in_month();
                     if (hd_d>=9)
-                        return 2.0f;
+                        return NODST;
                     int doff=(15+date.get_day_in_week()-hd_d)%7;
                     if (hd_d<9-doff)
-                        return 3.0f;//summer
+                        return DST;//summer
                 }
-                return 2.0f;
+                return NODST;
             }
             else
             {
                 int gd_m=date.get_gd_month();
                 if (gd_m>=4 && gd_m<=9)
-                    return 3.0f;//summer
+                    return DST;//summer
                 if (gd_m<3 || gd_m>=11)
-                    return 2.0f;
+                    return NODST;
                 int gd_d=date.get_gd_day();
                 int week_day=date.get_day_in_week();
                 int last_weekday=((31-gd_d)+(week_day-1))%7+1;
                 if(gd_m==3)
                 {
                     if (31-1-last_weekday>gd_d)//friday before last sunday
-                        return 2.0f;
-                    return 3.0f;//summer
+                        return NODST;
+                    return DST;//summer
                 }
                 else if (gd_m==10)
                 {
                     if (31+1-last_weekday>gd_d)//last sunday
-                        return 3.0f;//summer
-                    return 2.0f;
+                        return DST;//summer
+                    return NODST;
                 }
             }
         }
-        return 2.0f;
+        return NODST;
+    }
+    static public float GetTimeZoneAt(Hdate date)
+    {
+        return 2.0f+GetDSTAt(date);
     }
 
     /*static public void SetTimeZone(float new_timezone)
@@ -260,5 +269,9 @@ public class MaluachPreferences
     static public void SetKnisatShabat(short new_knisatshabat)
     {
         knisatshabat = new_knisatshabat;
+    }
+    static public boolean isDiaspora()
+    {
+        return false;
     }
 }
