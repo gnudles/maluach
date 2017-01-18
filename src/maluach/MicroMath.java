@@ -9,7 +9,7 @@ package maluach;
  *
  * @author orr
  */
-public class Trig
+public class MicroMath
 {
     
     static long round(double x)
@@ -395,7 +395,7 @@ public class Trig
         }
     }
 
-        /*public static double atan2(double y, double x)
+    /*public static double atan2(double y, double x)
     {
         int sign;
         double d = Math.sqrt(x * x + y * y);

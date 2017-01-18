@@ -94,59 +94,60 @@ public class TimesForm extends Form implements ScreenView
     public void OnShow(Object param)
     {
         super.deleteAll();
-        Hdate dateCursor= (Hdate)param;
-        SunCalc sc = new SunCalc(dateCursor.get_hd_jd(), MaluachPreferences.GetLatitude(), -MaluachPreferences.GetLongitude(), (int) (MaluachPreferences.GetTimeZoneAt(dateCursor) * 60));
-        AlotHashahar.setString(SunCalc.Min2Str(sc.getDawn()));
+        YDate dateCursor= (YDate)param;
+        SunCalc sc = new SunCalc(SunMonPosition.calcJD(dateCursor.gd.dayInMonth(), dateCursor.gd.month(), dateCursor.gd.year()),
+                MaluachPreferences.GetLatitude(), -MaluachPreferences.GetLongitude(), new TzDstManager());
+        AlotHashahar.setString(Format.Min2Str(sc.correctTz(sc.getDawn())));
         super.append(AlotHashahar);
-        Sheyakir.setString(SunCalc.Min2Str(sc.getRecognize()));
+        Sheyakir.setString(Format.Min2Str(sc.correctTz(sc.getRecognize())));
         super.append(Sheyakir);
-        Zriha.setString(SunCalc.Min2Str(sc.getSunrise()));
+        Zriha.setString(Format.Min2Str(sc.correctTz(sc.getSunrise())));
         super.append(Zriha);
         
-        SofKshMGA.setString(SunCalc.Min2Str(sc.getEndTimeKriatShmaMGA()));
+        SofKshMGA.setString(Format.Min2Str(sc.correctTz(sc.getEndTimeKriatShmaMGA())));
         super.append(SofKshMGA);
-        SofTfilaMGA.setString(SunCalc.Min2Str(sc.getEndTimeShahritMGA()));
+        SofTfilaMGA.setString(Format.Min2Str(sc.correctTz(sc.getEndTimeShahritMGA())));
         super.append(SofTfilaMGA);
         
-        SofKsh.setString(SunCalc.Min2Str(sc.getEndTimeKriatShma()));
+        SofKsh.setString(Format.Min2Str(sc.correctTz(sc.getEndTimeKriatShma())));
         super.append(SofKsh);
-        SofTfila.setString(SunCalc.Min2Str(sc.getEndTimeShahrit()));
+        SofTfila.setString(Format.Min2Str(sc.correctTz(sc.getEndTimeShahrit())));
         super.append(SofTfila);
         
-        if (dateCursor.get_hd_day_in_month()==14 && dateCursor.get_hd_month()==7)
+        if (dateCursor.hd.dayInMonth()==14 && dateCursor.hd.monthID()==YDate.JewishDate.M_ID_NISAN)
         {
-            AchilatHametz.setString(SunCalc.Min2Str(sc.getEndTimeShahritMGA()));
+            AchilatHametz.setString(Format.Min2Str(sc.correctTz(sc.getEndTimeShahritMGA())));
             super.append(AchilatHametz);
-            BiurHametz.setString(SunCalc.Min2Str(sc.getBiurHametz()));
+            BiurHametz.setString(Format.Min2Str(sc.correctTz(sc.getBiurHametz())));
             super.append(BiurHametz);
         }
         
-        HatzotHayom.setString(SunCalc.Min2Str(sc.getNoon()));
+        HatzotHayom.setString(Format.Min2Str(sc.correctTz(sc.getNoon())));
         super.append(HatzotHayom);
-        MinhaGdola.setString(SunCalc.Min2Str(sc.getMinhaGdola()));
+        MinhaGdola.setString(Format.Min2Str(sc.correctTz(sc.getMinhaGdola())));
         super.append(MinhaGdola);
-        MinhaKtana.setString(SunCalc.Min2Str(sc.getMinhaKtana()));
+        MinhaKtana.setString(Format.Min2Str(sc.correctTz(sc.getMinhaKtana())));
         super.append(MinhaKtana);
-        PlagMinha.setString(SunCalc.Min2Str(sc.getPlagMinha()));
+        PlagMinha.setString(Format.Min2Str(sc.correctTz(sc.getPlagMinha())));
         super.append(PlagMinha);
-        if (dateCursor.get_day_in_week()==6)
+        if (dateCursor.hd.dayInWeek()==6)
         {
-            KnisatShabat.setString(SunCalc.Min2Str(sc.getSunset()-MaluachPreferences.GetKnisatShabat()));
+            KnisatShabat.setString(Format.Min2Str(sc.correctTz(sc.getSunset()-MaluachPreferences.GetKnisatShabat())));
             super.append(KnisatShabat);
         }
-        Shkia.setString(SunCalc.Min2Str(sc.getSunset()));
+        Shkia.setString(Format.Min2Str(sc.correctTz(sc.getSunset())));
         super.append(Shkia);
-        TzetHakohavim.setString(SunCalc.Min2Str(sc.getVisibleStars()));
+        TzetHakohavim.setString(Format.Min2Str(sc.correctTz(sc.getVisibleStars())));
         super.append(TzetHakohavim);
 
-        if (dateCursor.get_day_in_week()==7)
+        if (dateCursor.hd.dayInWeek()==7)
         {
-            TzetShabat.setString(SunCalc.Min2Str(sc.getSunset()+40));
+            TzetShabat.setString(Format.Min2Str(sc.correctTz(sc.getSunset()+40)));
             super.append(TzetShabat);
         }
-        TzetHakohavim_ratam.setString(SunCalc.Min2Str(sc.getRabenuTam()));
+        TzetHakohavim_ratam.setString(Format.Min2Str(sc.correctTz(sc.getRabenuTam())));
         super.append(TzetHakohavim_ratam);
-        HatzotLayla.setString(SunCalc.Min2Str(sc.getNoon()+12*60));
+        HatzotLayla.setString(Format.Min2Str(sc.correctTz(sc.getNoon()+12*60)));
         super.append(HatzotLayla);
     }
 }

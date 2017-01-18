@@ -14,6 +14,26 @@ public class CalendarViewer extends DateShowers implements ScreenView
 
 {
 
+    private class Cursor
+    {
+        public short x;
+        public short y;
+        Cursor(short x,short y)
+        {
+            this.x=x;
+            this.y=y;
+        }
+        Cursor()
+        {
+            this.x=(short)0;
+            this.y=(short)0;
+        }
+        void set(Cursor c)
+        {
+            this.x=c.x;
+            this.y=c.y;
+        }
+    }
     private static final int COLOR_BACKGROUND = 0xffffff;
     private static final int COLOR_CELL = 0x49a3ff;
     private static final int COLOR_CELL_MONTH = 0x2993d4;
@@ -38,12 +58,8 @@ public class CalendarViewer extends DateShowers implements ScreenView
     private short m_cellWidth, m_cellHeight;
     //int[] Colors = new int[8];
     private Font m_tableFont;
-    /**the column of the cursor in the table*/
-    private short cursor_x;
-    /**the row of the cursor in the table*/
-    private short cursor_y;
-    private short m_newCursorX = 0;
-    private short m_newCursorY = 0;
+    private Cursor cursor;
+    private Cursor newCursor;
     
 
     private String[] Header =
@@ -57,14 +73,23 @@ public class CalendarViewer extends DateShowers implements ScreenView
     private int hd_offset, hd_month_size;
     private boolean clearcursor = false;
 
+    private void setCursorXY(Cursor c)
+    {
+        c.x = (short) (7 - m_dateCursor.hd.dayInWeek());
+        c.y = (short) ((m_dateCursor.hd.dayInMonth()+ c.x - 1) / 7);
+        if (m_dateCursor.hd.monthFirstDay()%7==YDate.SUNDAY)
+            c.y++;
+    }
     private CalendarViewer()
     {
         super();
+        cursor=new Cursor();
+        newCursor=new Cursor();
         this.setFullScreenMode(false);
 
-        m_dateCursor = new Hdate();
-        cursor_x = (short) (7 - m_dateCursor.get_day_in_week());
-        cursor_y = (short) ((m_dateCursor.get_hd_day_in_month() + cursor_x - 1) / 7);
+        m_dateCursor = YDate.getNow();
+        m_dateCursor.setMaintainEvents(true, false);
+        setCursorXY(cursor);
         m_cellHeight = (short) (getHeight() / 11);
         m_cellWidth = (short) ((getWidth() - 15) / 7);
         m_tableWidth = (short) ((m_cellWidth + 2) * 7 - 1);
@@ -84,20 +109,20 @@ public class CalendarViewer extends DateShowers implements ScreenView
 
     }
 
-    final public void jumpTo(Hdate date)
+    final public void jumpTo(YDate date)
     {
-        m_dateCursor.Set(date);
-        cursor_x = (short) (7 - m_dateCursor.get_day_in_week());
-        cursor_y = (short) ((m_dateCursor.get_hd_day_in_month() + cursor_x - 1) / 7);
+        m_dateCursor=YDate.createFrom(date);
+        m_dateCursor.setMaintainEvents(true, false);
+        setCursorXY(cursor);
         repaint();
     }
 
     private void drawcursor(Graphics g)
     {
 
-        int x = m_tableX + (m_cellWidth + 2) * cursor_x - 1;
-        int w = (m_cellWidth + 2);
-        int y = m_tableY + (cursor_y + 1) * (m_cellHeight + 2) - 1;
+        int x = m_tableX + (m_cellWidth + 2) * cursor.x - 1;
+        int w = m_cellWidth + 2;
+        int y = m_tableY + (cursor.y + 1) * (m_cellHeight + 2) - 1;
         int h = m_cellHeight + 2;
         g.drawLine(x, y, x + w, y);
         g.drawLine(x, y + h, x + w, y + h);
@@ -107,15 +132,18 @@ public class CalendarViewer extends DateShowers implements ScreenView
 
     private void drawstring(Graphics g)
     {
+        boolean heb=MaluachPreferences.HebrewInteface();
         int hy = m_tableHeight + m_tableY, gy;
         g.setColor(COLOR_TEXT_DATE_GRE);
-        g.drawString(m_dateCursor.getHolyday(), getWidth() / 2, hy + 2 * m_tableFont.getHeight(), Graphics.TOP | Graphics.HCENTER);
+        String holyday = m_dateCursor.events().getYearEventForDay(m_dateCursor.hd);
+        if (holyday.length()>0)
+            g.drawString(holyday, getWidth() / 2, hy + 2 * m_tableFont.getHeight(), Graphics.TOP | Graphics.HCENTER);
         gy = hy + m_tableFont.getHeight();
 
         g.setColor(COLOR_TEXT_DATE_HEB);
-        g.drawString(m_dateCursor.getDayString(), getWidth() / 2, hy, Graphics.TOP | Graphics.HCENTER);
+        g.drawString(m_dateCursor.hd.dayString(heb), getWidth() / 2, hy, Graphics.TOP | Graphics.HCENTER);
         g.setColor(COLOR_TEXT_DATE_GRE);
-        g.drawString(m_dateCursor.getgDayString(), getWidth() / 2, gy, Graphics.TOP | Graphics.HCENTER);
+        g.drawString(m_dateCursor.gd.dayString(heb), getWidth() / 2, gy, Graphics.TOP | Graphics.HCENTER);
 
 
     }
@@ -128,8 +156,7 @@ public class CalendarViewer extends DateShowers implements ScreenView
             g.setColor(COLOR_BACKGROUND);
             drawcursor(g);
             g.fillRect(0, m_tableHeight + m_tableY, getWidth(), m_tableFont.getHeight() * 3);
-            cursor_x = m_newCursorX;
-            cursor_y = m_newCursorY;
+            cursor.set(newCursor);
             g.setColor(COLOR_CURSOR);
             drawcursor(g);
 
@@ -137,12 +164,14 @@ public class CalendarViewer extends DateShowers implements ScreenView
             return;
         }
 
-        byte[] holydays = m_dateCursor.get_holydays();
+
+        byte[] holydays = m_dateCursor.events().getYearEvents();
+        int holyday_offset=m_dateCursor.hd.dayInYear()-m_dateCursor.hd.dayInMonth()+1;
         g.setColor(COLOR_BACKGROUND);
         g.fillRect(0, 0, getWidth(), getHeight());
         g.setColor(55, 130, 180);
 
-        int yoffset = (m_cellHeight - m_tableFont.getBaselinePosition()) / 2;
+        int yoffset = (m_cellHeight - m_tableFont.getBaselinePosition()-1) / 2;
         int i, j;
         int x = m_tableX;
         //draw the header
@@ -161,32 +190,29 @@ public class CalendarViewer extends DateShowers implements ScreenView
             g.fillRect(x + 1, m_tableY + 1, m_cellWidth - 1, m_cellHeight - 1);
             g.setColor(COLOR_TEXT_HEADER);
 
-
             g.drawString(Header[6 - i], x + m_cellWidth / 2, m_tableY + yoffset, Graphics.TOP | Graphics.HCENTER);
-            //g.drawString("cc", 0, 6, 0);
             x += m_cellWidth + CELL_MARGINS;
         }
-
-
 
 
         g.setColor(COLOR_CURSOR);
         drawcursor(g);
         boolean same_month = false;
-        if (m_dateCursor.get_hd_month() == s_dateToday.get_hd_month() && m_dateCursor.get_hd_year() == s_dateToday.get_hd_year())
+        if (m_dateCursor.hd.monthInYear()== s_dateToday.hd.monthInYear() && m_dateCursor.hd.year()== s_dateToday.hd.year())
         {
             same_month = true;
         }
         g.setColor(COLOR_TEXT_DAY);
         int y = m_tableY + m_cellHeight + CELL_MARGINS;
-        hd_offset = m_dateCursor.get_month_week_offset();
-        hd_month_size = m_dateCursor.get_hd_month_size();
+        hd_offset = m_dateCursor.hd.monthFirstDay()%7;
+        hd_month_size = m_dateCursor.hd.monthLength();
         int hd_prev_month_size = 0;
         int cellid = 6 - hd_offset;
-        if (hd_offset != 0)
+        if (hd_offset == 0)
         {
-            hd_prev_month_size = m_dateCursor.get_hd_prev_month_size();
+            cellid-=7;
         }
+        hd_prev_month_size = m_dateCursor.hd.previousMonthLength();
 
         for (j = 0; j < m_rows; j++)
         {
@@ -212,7 +238,7 @@ public class CalendarViewer extends DateShowers implements ScreenView
 
                 if (cellid >= 0 && cellid < hd_month_size)
                 {
-                    if (holydays[cellid] != 0)
+                    if (holydays[cellid+holyday_offset] != 0)
                     {
                         g.setColor(COLOR_CELL_HOLIDAY);
                     }
@@ -226,7 +252,7 @@ public class CalendarViewer extends DateShowers implements ScreenView
                             g.setColor(COLOR_CELL);
                     }
                     g.fillRect(x + 1, y + 1, m_cellWidth - 1, m_cellHeight - 1);
-                    if (same_month && (cellid + 1 == s_dateToday.get_hd_day_in_month()))
+                    if (same_month && (cellid + 1 == s_dateToday.hd.dayInMonth()))
                     {
                         g.setColor(COLOR_TEXT_TODAY);
                         g.drawString(Days[cellid], x + m_cellWidth / 2, y + yoffset, Graphics.TOP | Graphics.HCENTER);
@@ -265,12 +291,11 @@ public class CalendarViewer extends DateShowers implements ScreenView
 
     private void movecursor(boolean monthchanged)
     {
-        m_newCursorX = (short) (7 - m_dateCursor.get_day_in_week());
-        m_newCursorY = (short) ((m_dateCursor.get_hd_day_in_month() + m_newCursorX - 1) / 7);
+        
+        setCursorXY(newCursor);
         if (monthchanged)
         {
-            cursor_x = m_newCursorX;
-            cursor_y = m_newCursorY;
+            cursor.set(newCursor);
             this.repaint();
         }
         else
@@ -284,43 +309,43 @@ public class CalendarViewer extends DateShowers implements ScreenView
 
     final public void keyPressed(int keyCode)
     {
-        int month = m_dateCursor.get_hd_month();
+        int month = m_dateCursor.hd.monthInYear();
         keyCode = getGameAction(keyCode);
         if (keyCode == UP)
         {
-            if (m_dateCursor.moveday(-7))
+            if (m_dateCursor.seekBy(-7))
             {
-                movecursor(m_dateCursor.get_hd_month() != month);
+                movecursor(m_dateCursor.hd.monthInYear() != month);
             }
             return;
         }
         if (keyCode == DOWN)
         {
-            if (m_dateCursor.moveday(7))
+            if (m_dateCursor.seekBy(7))
             {
-                movecursor(m_dateCursor.get_hd_month() != month);
+                movecursor(m_dateCursor.hd.monthInYear() != month);
             }
             return;
         }
         if (keyCode == LEFT)
         {
-            if (m_dateCursor.moveday(1))
+            if (m_dateCursor.seekBy(1))
             {
-                movecursor(m_dateCursor.get_hd_month() != month);
+                movecursor(m_dateCursor.hd.monthInYear() != month);
             }
             return;
         }
         if (keyCode == RIGHT)
         {
-            if (m_dateCursor.moveday(-1))
+            if (m_dateCursor.seekBy(-1))
             {
-                movecursor(m_dateCursor.get_hd_month() != month);
+                movecursor(m_dateCursor.hd.monthInYear() != month);
             }
             return;
         }
         if (keyCode == FIRE)
         {
-            showParasha();
+            showInformation();
         }
 
     }//end keyPressed
@@ -332,9 +357,9 @@ public class CalendarViewer extends DateShowers implements ScreenView
         {
             int cellx = (x - m_tableX) / (m_cellWidth + CELL_MARGINS);
             int celly = (y - m_tableY) / (m_cellHeight + CELL_MARGINS) - 1;
-            int month = m_dateCursor.get_hd_month();
-            m_dateCursor.moveday((celly - cursor_y - 1) * m_columns + m_rows - cellx + cursor_x + 1);
-            movecursor(m_dateCursor.get_hd_month() != month);
+            int month = m_dateCursor.hd.monthInYear();
+            m_dateCursor.seekBy((celly - cursor.y - 1) * m_columns + m_rows - cellx + cursor.x + 1);
+            movecursor(m_dateCursor.hd.monthInYear() != month);
         }
 
 

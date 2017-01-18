@@ -28,7 +28,7 @@ public class CityList extends List implements DisplaySelect,ScreenView {
 
     private void Load(String filename)
     {
-InputStream in = CityList.class.getResourceAsStream(filename);
+        InputStream in = CityList.class.getResourceAsStream(filename);
         DataInputStream dis = new DataInputStream(in);
         try
         {

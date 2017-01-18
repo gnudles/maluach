@@ -65,13 +65,13 @@ public class Psalms extends List implements CommandCheck,ScreenView {
         if (c==List.SELECT_COMMAND)
         {
             int selected=getSelectedIndex();
-            if (selected==9)
+            if (selected==9)//select Chapter
             {
                 
                 maluach.getInstance().PushScreen((Displayable)new PsalmsChapter());
                 return true;
             }
-            else if (selected==10)
+            else if (selected==10) //find/search
             {
                 maluach.getInstance().PushScreen((Displayable)new PsalmsFind());
                 return true;

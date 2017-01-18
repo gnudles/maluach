@@ -17,24 +17,27 @@ public abstract class DateShowers extends Canvas implements CommandCheck
 {
     protected static final Command c_jumpToday = new Command("עבור להיום", Command.SCREEN, 2);
     protected static final Command c_showDayTimes = new Command("הצג זמנים", Command.SCREEN, 3);
-    protected static final Command c_showParasha=new Command("פרשת שבוע",Command.SCREEN,0);
+    protected static final Command c_showMeida=new Command("מידע",Command.SCREEN,1);
+    //protected static final Command c_showParasha=new Command("פרשת שבוע",Command.SCREEN,0);
     protected static final Command c_showMolad=new Command("מולד הלבנה",Command.SCREEN,5);
-    protected static final Command c_showOmer=new Command("ספירת העמר",Command.SCREEN,6);
+    //protected static final Command c_showOmer=new Command("ספירת העמר",Command.SCREEN,6);
     protected DateShowers()
     {
         addCommand(c_jumpToday);
         addCommand(c_showDayTimes);
-        addCommand(c_showParasha);
+        addCommand(c_showMeida);
+        //addCommand(c_showParasha);
         addCommand(c_showMolad);
-        addCommand(c_showOmer);
+        //addCommand(c_showOmer);
     }
-    protected static Hdate s_dateToday = new Hdate();
-    protected Hdate m_dateCursor;
-    public static Hdate getToday()
+
+    protected static YDate s_dateToday = YDate.getNow();
+    protected YDate m_dateCursor;
+    public static YDate getToday()
     {
         return s_dateToday;
     }
-    final public Hdate getCursor()
+    final public YDate getCursor()
     {
         return m_dateCursor;
     }
@@ -51,9 +54,14 @@ public abstract class DateShowers extends Canvas implements CommandCheck
             ShowTime();
             return true;
         }
-        if (c==c_showParasha)
+        /*if (c==c_showParasha)
         {
             showParasha();
+            return true;
+        }*/
+        if (c==c_showMeida)
+        {
+            showInformation();
             return true;
         }
         if (c==c_showMolad)
@@ -61,15 +69,36 @@ public abstract class DateShowers extends Canvas implements CommandCheck
             showMolad();
             return true;
         }
-        if (c==c_showOmer)
+        /*if (c==c_showOmer)
         {
             showOmer();
             return true;
-        }
+        }*/
         return false;
+    }
+    protected void showInformation()
+    {
+        String lstr=parasha();
+        if (lstr.length()>0)
+        {
+            
+            lstr+="\n";
+        }
+        String omer=SfiratOmer();
+        lstr+=omer;
+        if (omer.length()>0)
+            lstr+="\n";
+        if (m_dateCursor.hd.dayInMonth()==1 || m_dateCursor.hd.dayInMonth()==30)
+            lstr+="ראש חדש\n";
+        lstr+="שנה "+m_dateCursor.hd.ShmitaTitle()+"\n";
+        lstr+="ברכת החמה בעוד "+Integer.toString((10227-m_dateCursor.hd.TkufotCycle())%10227)+" יום\n";
+        if (lstr.length()>0)
+            maluach.showAlert("מידע", lstr, AlertType.INFO);
     }
     protected void showMolad()
     {
+        String lstr;
+        /*
         // 19,17,14,11,8,6,3, those are years with 13 months
         final int D=0,H=1,P=2,PART=1080;//days,hours,parts
         final int c_month_parts=(793+PART*12+29*24*PART);
@@ -118,21 +147,13 @@ public abstract class DateShowers extends Canvas implements CommandCheck
             {1,  7,  370},
             {2, 20,   83},
             {4,  8,  876},
-            //{5, 21,  589}
+            {5, 21,  589}
         };
-        int year=m_dateCursor.get_hd_year()-1;//we subtract one because we want full years
+        int year=m_dateCursor.hd.year()-1;//we subtract one because we want full years
         
         int cycle=year/19;
         int offset=year%19;
-        int mon=m_dateCursor.get_hd_month();//1..14 (1 - tishre
-        // 2-heshvan,3-kislev,4-tevet,5-shvat,6-adar..., 13 - adar 1, 14 - adar 2).
-        if (c_months_in_year[offset]==13)
-        {
-            if (mon>=13)
-                mon-=(13-6);
-            else if(mon>=6)
-                mon++;
-        }
+        int mon=m_dateCursor.hd.monthInYear();
         int parts=c_first_molad;
         parts+=(c_cycle_offset[19][D]*cycle*24*PART
                    + c_cycle_offset[19][H]*cycle*PART
@@ -152,12 +173,12 @@ public abstract class DateShowers extends Canvas implements CommandCheck
         int hours=parts/(PART);
         parts=parts%(PART);
         
-        String lstr="המולד לחודש ";
-        lstr+=m_dateCursor.get_hd_month_name();
+        lstr="המולד לחודש ";
+        lstr+=m_dateCursor.hd.monthName(true);
         lstr+=" ";
-        lstr+=Hdate.get_int_string(m_dateCursor.get_hd_year(),true);
+        lstr+=Format.HebIntString(m_dateCursor.hd.year(),true);
         lstr+=" ביום ";
-        lstr+=Hdate.day_names[days];
+        lstr+=YDate.day_names[0][days];
         lstr+=" שעה ";
         lstr+=String.valueOf(hours);
         lstr+=" ו ";
@@ -165,67 +186,64 @@ public abstract class DateShowers extends Canvas implements CommandCheck
         lstr+=" חלקים";
         lstr+="\n";
         int minutes=(parts)/(1080/60);
-        hours=(18+hours)%24;
-        lstr+=SunCalc.Min2Str(hours*60+minutes);
+        YDate molad=YDate.createFrom(m_dateCursor);
+        
+        molad.seekBy(-molad.hd.dayInMonth());
+        float dst=0;
+        hours=(18+hours+(int)dst)%24;
+        lstr+=Format.Min2Str(hours*60+minutes);
         lstr+=" ו ";
         lstr+=String.valueOf(parts%(1080/60));
         lstr+=" חלקים";
+        if (dst>0)
+            lstr+=" (שעון קיץ)";
+                
+        
+        maluach.showAlert("מולד הלבנה", lstr, AlertType.INFO);
+                */
+        lstr=m_dateCursor.hd.MoladString(new TzDstManager());
         maluach.showAlert("מולד הלבנה", lstr, AlertType.INFO);
     }
-    protected void showParasha()
+    protected String parasha()
     {
-        String lstr=Parasha.GetParashaFor(m_dateCursor);
+        String lstr=Parasha.GetParashaFor(m_dateCursor.hd);
         String shabat_str=Parasha.parshiot4(m_dateCursor);
         if (shabat_str.length()>0)
             lstr="שבת "+shabat_str+", "+lstr;
-        if (lstr.length()>0)
-            maluach.showAlert("פרשה", lstr, AlertType.INFO);
+        return lstr;
     }
-    protected void showOmer()
+    protected String SfiratOmer()
     {
-        int om=m_dateCursor.get_sfirat_haomer();
+        int om=m_dateCursor.hd.sfiratHaomer();
         String lstr="";
         if (om>0)
         {
-            lstr="היום "+Hdate.get_int_string(om,true) + " לעמר (מערב אתמול)";
+            lstr="היום "+Format.HebIntString(om,true) + " לעמר (מערב אתמול)";
             
         }
         om+=1;
         if (om<50 && om>0)
         {
-            lstr+="\nבערב "+Hdate.get_int_string(om,true) + " לעמר";
+            lstr+="\nבערב "+Format.HebIntString(om,true) + " לעמר";
         }
-        if (lstr.length()>0)
-                maluach.showAlert("ספירת העמר", lstr, AlertType.INFO);
+        return lstr;
     }
     final public void jumpToday()
     {
-
-    
         jumpTo(s_dateToday);
     }
-    abstract public void jumpTo(Hdate date);
+    abstract public void jumpTo(YDate date);
     public void ShowTime()
     {
-        /*SunCalc sc = new SunCalc(m_dateCursor.get_hd_jd(), MaluachPreferences.GetLatitude(), -MaluachPreferences.GetLongitude(), (int) (MaluachPreferences.GetTimeZoneAt(m_dateCursor) * 60));
-        String lstr = "עלות השחר " + SunCalc.Min2Str(sc.getDawn());
-        lstr += "\nטלית ותפילין " + SunCalc.Min2Str(sc.getRecognize());
-        lstr += "\nזריחה " + SunCalc.Min2Str(sc.getSunrise());
-        lstr += "\nסוף ק\"ש " + SunCalc.Min2Str(sc.getEndTimeKriatShma());
-        lstr += "\nסוף תפילה " + SunCalc.Min2Str(sc.getEndTimeShahrit());
-        lstr += "\nחצות היום " + SunCalc.Min2Str(sc.getNoon());
-        lstr += "\nמנחה גדולה " + SunCalc.Min2Str(sc.getMinhaGdola());
-        lstr += "\nמנחה קטנה " + SunCalc.Min2Str(sc.getMinhaKtana());
-        lstr += "\nפלג המנחה " + SunCalc.Min2Str(sc.getPelegMinha());
-        if (m_dateCursor.get_day_in_week()==6)
-            lstr += "\nכניסת שבת " + SunCalc.Min2Str(sc.getSunset()-MaluachPreferences.GetKnisatShabat());
-        lstr += "\nשקיעה " + SunCalc.Min2Str(sc.getSunset());
-        lstr += "\nצאת הכוכבים " + SunCalc.Min2Str(sc.getVisibleStars());
-        if (m_dateCursor.get_day_in_week()==7)
-            lstr += "\nצאת שבת " + SunCalc.Min2Str(sc.getSunset()+40);
-        lstr += "\nחצות הליל " + SunCalc.Min2Str(sc.getNoon()+12*60);
-        maluach.showAlert("זמני היום", lstr, AlertType.INFO);*/
-        TimesForm.getInstance().OnShow(m_dateCursor);
-        maluach.getInstance().PushScreen((Displayable)TimesForm.getInstance());
+        int y=m_dateCursor.gd.year();
+        if (y<1900 || y >= 2100)
+        {
+            maluach.showAlert("שגיאה", "לא ניתן להציג זמנים עבור השנה הנבחרת", AlertType.INFO);
+        }
+        else
+        {
+            TimesForm.getInstance().OnShow(m_dateCursor);
+            maluach.getInstance().PushScreen((Displayable)TimesForm.getInstance());
+        }
     }
 }

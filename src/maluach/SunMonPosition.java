@@ -65,12 +65,6 @@ public class SunMonPosition
 	
 	public static double mod2Pi( double x) { return( mod(x, 2.*pi)); } 				// Modulo PI
 	
-	public static double round1000000( double x) { return(Trig.round(1000000.*x)/1000000.); }
-	public static double round100000( double x) { return(Trig.round(100000.*x)/100000.); }
-	public static double round10000( double x) { return(Trig.round(10000.*x)/10000.); }
-	public static double round1000( double x) { return(Trig.round(1000.*x)/1000.); }
-	public static double round100( double x) { return(Trig.round(100.*x)/100.); }
-        public static double round10( double x) { return(Trig.round(10.*x)/10.); }
 	
 	/**
 	 * @param hh Decimal Time
@@ -180,8 +174,8 @@ public class SunMonPosition
 		double sineps = Math.sin(eps);
 		  
 		double sinlon = Math.sin(coor.lon);
-		coor.ra  = mod2Pi( Trig.atan2( (sinlon*coseps-Math.tan(coor.lat)*sineps), Math.cos(coor.lon) ) );
-		coor.dec = Trig.asin( Math.sin(coor.lat)*coseps + Math.cos(coor.lat)*sineps*sinlon );
+		coor.ra  = mod2Pi( MicroMath.atan2( (sinlon*coseps-Math.tan(coor.lat)*sineps), Math.cos(coor.lon) ) );
+		coor.dec = MicroMath.asin( Math.sin(coor.lat)*coseps + Math.cos(coor.lat)*sineps*sinlon );
 
 		return(coor);
 	}
@@ -207,8 +201,8 @@ public class SunMonPosition
 		  
 		double N = -cosdec * sinlha;
 		double D = sindec * coslat - cosdec * coslha * sinlat;
-		coor.az = mod2Pi( Trig.atan2(N, D) );
-		coor.alt = Trig.asin( sindec * sinlat + cosdec * coslha * coslat );
+		coor.az = mod2Pi( MicroMath.atan2(N, D) );
+		coor.alt = MicroMath.asin( sindec * sinlat + cosdec * coslha * coslat );
 
 		return(coor);
 	}
@@ -235,8 +229,8 @@ public class SunMonPosition
 		double z = coor.distance*sindec - rho*sinlat;
 
 		coor.distanceTopocentric = Math.sqrt(x*x + y*y + z*z);
-		coor.decTopocentric = Trig.asin(z/coor.distanceTopocentric);
-		coor.raTopocentric = mod2Pi( Trig.atan2(y, x) );
+		coor.decTopocentric = MicroMath.asin(z/coor.distanceTopocentric);
+		coor.raTopocentric = mod2Pi( MicroMath.atan2(y, x) );
 
 		return(coor);
 	}
@@ -285,7 +279,7 @@ public class SunMonPosition
 		double a = aearth * u + height;
 		double b = aearth * fl * u + height;
 		double radius = Math.sqrt (a * a * co * co + b * b * si); // geocentric distance from earth center
-		cart.y = Trig.acos (a * co / radius); // geocentric latitude, rad
+		cart.y = MicroMath.acos (a * co / radius); // geocentric latitude, rad
 		cart.x = lon; // longitude stays the same
 		if (lat < 0.0) { cart.y = -cart.y; } // adjust sign
 		cart = equPolar2Cart( cart.x, cart.y, radius ); // convert from geocentric polar to geocentric cartesian, with regard to Greenwich
@@ -426,8 +420,8 @@ public class SunMonPosition
 		double N2 = N - 0.16 * DEG2RAD * Math.sin(sunCoor.anomalyMean);
 	
 		Coor moonCoor = new Coor();
-		moonCoor.lon = mod2Pi( N2 + Trig.atan2( Math.sin(l3-N2)*Math.cos(i), Math.cos(l3-N2) ) );
-		moonCoor.lat = Trig.asin( Math.sin(l3-N2)*Math.sin(i) );
+		moonCoor.lon = mod2Pi( N2 + MicroMath.atan2( Math.sin(l3-N2)*Math.cos(i), Math.cos(l3-N2) ) );
+		moonCoor.lat = MicroMath.asin( Math.sin(l3-N2)*Math.sin(i) );
 		moonCoor.orbitLon = l3;
 		  
 		moonCoor = ecl2Equ(moonCoor, TDT);
@@ -457,7 +451,7 @@ public class SunMonPosition
 		double p = mod(moonCoor.moonAge, 90.0 * DEG2RAD);
 		  
 		  
-		if (p < mainPhase || p > 90*DEG2RAD-mainPhase) p = 2*Trig.round(moonCoor.moonAge / (90.*DEG2RAD));
+		if (p < mainPhase || p > 90*DEG2RAD-mainPhase) p = 2*MicroMath.round(moonCoor.moonAge / (90.*DEG2RAD));
 		else p = 2*Math.floor(moonCoor.moonAge / (90.*DEG2RAD))+1;
 		moonCoor.moonPhase = phases_EN[(int) p];
 		
@@ -518,7 +512,7 @@ public class SunMonPosition
 	private static Riseset gMSTRiseSet(Coor corr, double lon, double lat, double h)
 	{
 
-		double tagbogen = Trig.acos((Math.sin(h) - Math.sin(lat) * Math.sin(corr.dec)) / (Math.cos(lat) * Math.cos(corr.dec)));
+		double tagbogen = MicroMath.acos((Math.sin(h) - Math.sin(lat) * Math.sin(corr.dec)) / (Math.cos(lat) * Math.cos(corr.dec)));
 
 		Riseset r1 = new Riseset();
 		r1.transit = RAD2DEG / 15 * (+corr.ra - lon);
@@ -598,8 +592,8 @@ public class SunMonPosition
 
 		// Refraction and Parallax correction
 		double decMean = 0.5 * (coor2.dec + coor2.dec);
-		double psi = Trig.acos(Math.sin(lat) / Math.cos(decMean));
-		double y = Trig.asin(Math.sin(alt) / Math.sin(psi));
+		double psi = MicroMath.acos(Math.sin(lat) / Math.cos(decMean));
+		double y = MicroMath.asin(Math.sin(alt) / Math.sin(psi));
 		double dt = 240 * RAD2DEG * y / Math.cos(decMean) / 3600; // time correction due to refraction, parallax
 
 		rise.transit = gMST2UT(jd0UT, interpolateGMST(T0, rise1.transit, rise2.transit, timeinterval));

@@ -62,34 +62,13 @@ public class YDateAnnual
         "יום הזיכרון",
         "יום העצמאות",//46
         "יום ירושלים",
-        "(יום המשפחה)",
+        "יום המשפחה",
         "יום הזכרון ליצחק רבין",//49
 
     };
 
-    /**
-     * Return Hebrew year type based on size and first week day of year.
-     * year type | year length | Tishery 1 day of week
-     * | 1       | 353         | 2  ph2
-     * | 2       | 353         | 7  ph7
-     * | 3       | 354         | 3  pk3
-     * | 4       | 354         | 5  pk5
-     * | 5       | 355         | 2  ps2
-     * | 6       | 355         | 5  ps5
-     * | 7       | 355         | 7  ps7
-     * | 8       | 383         | 2  mh2
-     * | 9       | 383         | 5  mh5
-     * |10       | 383         | 7  mh7
-     * |11       | 384         | 3  mk3
-     * |12       | 385         | 2  ms2
-     * |13       | 385         | 5  ms5
-     * |14       | 385         | 7  ms7
-     * 
-     * @param size_of_year Length of year in days
-     * @param year_first_dw First week day of year 
-     * @return A number for year type (1..14)
-     */
-    static final int [][] event_db= 
+
+    static final byte [][] event_db= 
     {// month_id,day,array index,# of days,jump/dhia(if #_days==1)
         {JewishDate.M_ID_TISHREI,1,1,2,1},//two days of rosh hashana
         {JewishDate.M_ID_TISHREI,3,3,1,1},//zom gdalia, dhia
@@ -119,10 +98,8 @@ public class YDateAnnual
         {JewishDate.M_ID_AV,9,41,1,1},//Tzom 9 Av
         {JewishDate.M_ID_AV,15,42,1,0},//15 Av
         {JewishDate.M_ID_ELUL,29,43,1,0},//Erev Rosh Hashana
-        
-        
     };
-    static final int [][] event_db_diaspora= 
+    static final byte [][] event_db_diaspora= 
     {// month_id,day,array index,# of days,jump/dhia(if #_days==1)
         {JewishDate.M_ID_TISHREI,16,8,1,0},//sukkot II
         {JewishDate.M_ID_TISHREI,22,11,1,0},//shmini azeret
@@ -131,34 +108,136 @@ public class YDateAnnual
         {JewishDate.M_ID_NISAN,22,33,1,0},//Shmi'ni Pesah
         {JewishDate.M_ID_SIVAN,7,38,1,0},//Shavu'ot II
     };
-    static int get_year_ld_type (int size_of_year, int year_first_dw)
-    {
-            /* Only 14 combinations of size and week day are posible */
-            final int[] year_types =
-                    {1, 0, 0, 2, 0, 3, 4, 0, 5, 0, 6, 7,
-                    8, 0, 9, 10, 0, 11, 0, 0, 12, 0, 13, 14};
-
-            int offset;
-
-            /* convert size and first day to 1..24 number */
-            /* 2,3,5,7 -> 1,2,3,4 */
-            /* 353, 354, 355, 383, 384, 385 -> 0, 1, 2, 3, 4, 5 */
-            offset = (year_first_dw + 1) / 2;
-            offset = offset + 4 * ((size_of_year % 10 - 3) + (size_of_year / 10 - 35));
-
-            /* some combinations are imposible */
-            return year_types[offset - 1];
-    }
+/*
+    holocaust day (44) in 27 Nisan 1951 (5711). if on friday, move it backward. if on sunday after 1997 move it afterward.
+    memorial day (45) in 4 Iyar 1951 (5711).
+    family day (48) in 30 Shevat since 1973 (5733).
     
-    static int [][][] annual_events = new int [2][14][];//[diaspora][year_type][day_in_year]
-    YDateAnnual(int year, int year_length, int year_first_day,boolean diaspora)
+    */
+    
+    private byte [] current_year_events;
+    private boolean diaspora;
+    private int year;
+    public int year()
+    {
+        return this.year;
+    }
+    public boolean diaspora()
+    {
+        return this.diaspora;
+    }
+    public String getYearEventForDay(JewishDate d)
+    {
+        return holydays_str[current_year_events[d.dayInYear()]];
+    }
+    public byte [] getYearEvents()
+    {
+        return current_year_events;
+    }
+    private static byte [] cloneArray(byte [] arr)
+    {
+        byte [] new_arr=new byte[arr.length];
+        for (int i=0;i<arr.length;++i)
+        {
+            new_arr[i]=arr[i];
+        }
+        return new_arr;
+    }
+    public YDateAnnual(int year, int year_length, int year_first_day,boolean diaspora)
+    {
+        this.year=year;
+        this.diaspora=diaspora;
+        int year_ld_t= JewishDate.ld_year_type(year_length,year_first_day%7+1);
+        initialize_year(diaspora,year_ld_t,year_length,year_first_day);
+        current_year_events=cloneArray(annual_events[diaspora?1:0][year_ld_t-1]);
+        addNationalEvents(current_year_events,year, year_length, year_first_day);
+    }
+    private static void addNationalEvents(byte [] year_events,int year, int year_length, int year_first_day)
+    {
+        //Holocaust day
+        if (year >= 5718)//1958
+        {
+            int day_in_year = YDate.JewishDate.calculateDayInYearByMonthId(year_length, JewishDate.M_ID_NISAN, 27);
+            int dayweek = (day_in_year + year_first_day) % 7;
+            if (dayweek == YDate.FRIDAY)//friday
+            {
+                day_in_year--;
+            }
+            else if (dayweek == YDate.SUNDAY)//sunday
+            {
+
+                day_in_year++;
+            }
+            year_events[day_in_year] = 44;
+        }
+        //Yom Azma'ut and Yom HaZikaron
+        if (year >= 5708)//1948
+        {
+            int day_in_year = YDate.JewishDate.calculateDayInYearByMonthId(year_length, JewishDate.M_ID_IYAR, 5);
+            int dayweek = (day_in_year + year_first_day) % 7;
+
+            if (dayweek == YDate.SATURDAY)//on saturday
+            {
+                day_in_year -= 2;
+
+            }
+            else if (dayweek == YDate.FRIDAY)//on friday
+            {
+                day_in_year -= 1;
+
+            }
+            else if (dayweek == YDate.MONDAY && year >= 5764)//on monday (2004) then Yom HaZikaron is on sunday, and that's no good...
+            {
+                day_in_year += 1;
+
+            }
+            year_events[day_in_year - 1] = 45;//Yom HaZikaron
+            year_events[day_in_year] = 46;//Yom Azma'ut
+        }
+        //Jerusalem day
+        if (year >= 5728)//1968
+	{
+            int day_in_year = YDate.JewishDate.calculateDayInYearByMonthId(year_length, JewishDate.M_ID_IYAR, 28);
+            year_events[day_in_year] = 47;
+	}
+        //Family day
+        if (year >= 5733)//1973
+	{
+            int day_in_year = YDate.JewishDate.calculateDayInYearByMonthId(year_length, JewishDate.M_ID_SHEVAT, 30);
+            year_events[day_in_year] = 48;
+	}
+        //Rabin's Day   
+        if (year >= 5758)//cheshvan 1997
+        {
+            int day_in_year = YDate.JewishDate.calculateDayInYearByMonthId(year_length, JewishDate.M_ID_CHESHVAN, 12);
+            int dayweek = (day_in_year + year_first_day) % 7;
+            if (dayweek == YDate.FRIDAY)
+            {
+                day_in_year--;
+            }
+            year_events[day_in_year] = 49;
+        }
+    }
+    static byte [][][] annual_events = new byte [2][JewishDate.N_YEAR_TYPES][];//[diaspora][year_type][day_in_year]
+    public static String getEventForDay(JewishDate d,boolean diaspora)
+    {
+        return holydays_str[getEvents(d, diaspora)[d.dayInYear()]];
+    }
+    public static byte [] getEvents(JewishDate d,boolean diaspora)
     {
         
-        int year_ld_t= get_year_ld_type(year_length,year_first_day%7+1);
-        initialize_year(diaspora,year_ld_t,year_length,year_first_day);
-
+        int year_ld_t= JewishDate.ld_year_type(d.yearLength(),d.yearFirstDay()%7+1);
+        return initialize_year(diaspora,year_ld_t,d.yearLength(),d.yearFirstDay());
+        
     }
-    static void expandDB(int year_length,int year_first_day,final int [][] evdb, int [] year_events)
+    public static byte [] getEvents(int year, int year_length, int year_first_day,boolean diaspora)
+    {
+        
+        int year_ld_t= JewishDate.ld_year_type(year_length,year_first_day%7+1);
+        return initialize_year(diaspora,year_ld_t,year_length,year_first_day);
+        
+    }
+    private static void expandDB(int year_length,int year_first_day,final byte [][] evdb, byte [] year_events)
     {
         boolean leap=year_length>355;
         final int IDX_M_ID = 0;
@@ -191,7 +270,7 @@ public class YDateAnnual
             }
             else
             {
-                int idx = evdb[ev][IDX_IDX];
+                byte idx = evdb[ev][IDX_IDX];
                 for (int l = 0; l < evdb[ev][IDX_LEN]; ++l)
                 {
                     year_events[diy + l] = idx;
@@ -200,15 +279,16 @@ public class YDateAnnual
             }
         }
     }
-    static void initialize_year(boolean diaspora,int year_ld_t,int year_length,int year_first_day)
+    private static byte[] initialize_year(boolean diaspora,int year_ld_t,int year_length,int year_first_day)
     {
         if (annual_events[diaspora?1:0][year_ld_t-1]==null)
         {
-            annual_events[diaspora?1:0][year_ld_t-1]=new int [year_length];
+            annual_events[diaspora?1:0][year_ld_t-1]=new byte [year_length];
             expandDB(year_length,year_first_day,event_db, annual_events[diaspora?1:0][year_ld_t-1]);
             if (diaspora)
                 expandDB(year_length,year_first_day,event_db_diaspora, annual_events[diaspora?1:0][year_ld_t-1]);
         }
+        return annual_events[diaspora?1:0][year_ld_t-1];
     }
 
 }

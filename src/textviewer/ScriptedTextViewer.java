@@ -20,7 +20,7 @@ public class ScriptedTextViewer extends Canvas implements ScreenView,DisplayBack
 
     private Image m_imageFont;
     
-    private byte[] m_fontCharShiftBig =
+    private final byte[] m_fontCharShiftBig =
     {
         0, 7, 6, 0, 0, 0, 0, 6, 5, 5, 0, 0, 6, 4, 6, 0,//first line in the font
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0,//0
@@ -37,7 +37,7 @@ public class ScriptedTextViewer extends Canvas implements ScreenView,DisplayBack
         1, 3, 4, 4, 3, 6, 5, 3, 3, 7, 3, 4, 4, 3, 2, 7,
         4, 3, 3, 4, 3, 3, 3, 3, 4, 1, 1, 0, 0, 0, 0, 0
     };
-    private byte[] m_fontCharWidthBig =
+    private final byte[] m_fontCharWidthBig =
     {
         7, 2, 6, 0, 0, 0, 0, 2, 5, 5, 0, 0, 4, 6, 2, 0,//first line in the font
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 0, 0, 0, 0,//0

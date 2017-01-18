@@ -12,13 +12,17 @@ public class SunCalc
 
     private double latitude, longitude;
     private double JD;
-    int timezone;
+    YDate.TimeZoneProvider timezone;
     private double noonEqTime, noonSolarDec, firstHourAngle, noonmin, risemin, setmin;
+    private double risemin_16, setmin_16;
+    private double risemin_11;
 
-    public SunCalc(double JD, double latitude, double longitude, int timezone)
+    public SunCalc(double JD, double latitude, double longitude, YDate.TimeZoneProvider timezone)
     {
+        double sun_alt_angle=90.833;
         this.JD = JD;
-        this.timezone=timezone;
+        this.timezone = timezone;
+
         this.latitude = latitude;
         this.longitude = longitude;
         noonmin = calcSolNoonUTC(JD, longitude);
@@ -29,13 +33,21 @@ public class SunCalc
         noonEqTime = st.calcEquationOfTime();
 
         noonSolarDec = st.getSunDeclination();
-        firstHourAngle = SunTimes.radToDeg(calcHourAngle(latitude, noonSolarDec));
-        calcSunUTC(false);
-        calcSunUTC(true);
+        firstHourAngle = SunTimes.radToDeg(calcHourAngle(latitude, noonSolarDec,sun_alt_angle));
+        risemin=calcSunUTC(false,sun_alt_angle);
+        setmin=calcSunUTC(true,sun_alt_angle);
+        risemin_16=calcSunUTC(false,106.01);
+        setmin_16=calcSunUTC(true,106.01);
+        risemin_11=calcSunUTC(false,101.5);
 
-        noonmin += timezone;
+        /*
+        noonmin += timezone.getOffset(d);
         risemin += timezone;
         setmin += timezone;
+        risemin_11 += timezone;
+        risemin_16 += timezone;
+        setmin_16 += timezone;
+        */
 
     }
     /*
@@ -45,7 +57,11 @@ public class SunCalc
      * 1000)))); return elevationAdjustment;
     }
      */
-
+    public double correctTz(double t)
+    {
+        Date d=YDate.toDate(YDate.JdtoDays((int)this.JD), (float)(t/60.0));
+        return t+timezone.getOffset(d)*60.0;
+    }
     public double getNoon()
     {
         return noonmin;
@@ -60,57 +76,14 @@ public class SunCalc
     {
         return risemin;
     }
-    public double calculteBySunPos(int minutes_time,double angle_time,boolean rise)
-    {
-        double rise_set;
-        if (rise)
-            rise_set=risemin;
-        else 
-            rise_set=setmin;
-        float calc_time=(float)rise_set +minutes_time;
-        SunPos sp = new SunPos((int)this.JD,this.latitude, this.longitude, this.timezone);
-        sp.calcSunAz(calc_time);
-        double elev=sp.getSunElevation();
-        double new_elev;
-        float distance=32;
-        int iters=0;
-        int sign=1;
-        if (elev >angle_time)
-            sign*=-1;
-        if (!rise)
-            sign*=-1;
-        while(true)
-        {
-            iters++;
-            if (iters==30)
-                return rise_set +minutes_time;
-            calc_time+=distance*sign;
-            sp.calcSunAz(calc_time);
-            new_elev=sp.getSunElevation();
-            if (!rise)
-                sign=-1;
-            else
-                sign=1;
-            if (new_elev >angle_time)
-                sign*=-1;
-            distance/=2;
-            if (Math.abs(new_elev-angle_time)<0.1)
-                break;
-        }
-        return calc_time;
-    }
-    public double getDawn()// 72 minutes before the sunrise
+    public double getDawn()// 72 minutes before the sunrise, 16 degrees
     {  
-        int minutes_time=-72;
-        double angle_time=-16;
-        return calculteBySunPos(minutes_time,angle_time,true);
+        return risemin_16;
     }
 
-    public double getRecognize()// 50 minutes before the sunrise
+    public double getRecognize()// 50 minutes before the sunrise, 11.5 degrees
     {
-        int minutes_time=-50;
-        double angle_time=-11.5;
-        return calculteBySunPos(minutes_time,angle_time,true);
+        return risemin_11;
     }
 
     public double getEndTimeKriatShma()// 3 day-hours (shaot zmaniot) after the sunrise
@@ -157,26 +130,8 @@ public class SunCalc
     }
     public double getRabenuTam()
     {
-        int minutes_time=(int)(1.2*(setmin - noonmin) / 12.0); //72 minutes is 1.2 hours
-        double angle_time=-16;
-        return calculteBySunPos(minutes_time,angle_time,false);
-    }
-
-    public static boolean isLeapYear(int year)
-    {
-        if (year % 400 == 0)
-        {
-            return true;
-        }
-        if (year % 100 == 0)
-        {
-            return false;
-        }
-        if (year % 4 == 0)
-        {
-            return true;
-        }
-        return false;
+        //int minutes_time=(int)(1.2*(setmin - noonmin) / 12.0); //72 minutes is 1.2 hours
+        return setmin_16;
     }
 
     public static int calcDayOfYear(int mn, int dy, boolean isl)
@@ -186,14 +141,14 @@ public class SunCalc
         return doy;
     }
 
-    public static double calcHourAngle(double lat, double solarDec)//for sunset multiply by -1
+    public static double calcHourAngle(double lat, double solarDec,double alt_angle)//for sunset multiply by -1
     {
         double latRad = SunTimes.degToRad(lat);
         double sdRad = SunTimes.degToRad(solarDec);
 
-        double HAarg = (Math.cos(SunTimes.degToRad(90.833)) / (Math.cos(latRad) * Math.cos(sdRad)) - Math.tan(latRad) * Math.tan(sdRad));
+        double HAarg = (Math.cos(SunTimes.degToRad(alt_angle)) / (Math.cos(latRad) * Math.cos(sdRad)) - Math.tan(latRad) * Math.tan(sdRad));
 
-        double HA = (Trig.acos(Math.cos(SunTimes.degToRad(90.833)) / (Math.cos(latRad) * Math.cos(sdRad)) - Math.tan(latRad) * Math.tan(sdRad)));
+        double HA = (MicroMath.acos(HAarg));
 
         return HA;		// in radians
     }
@@ -213,7 +168,7 @@ public class SunCalc
         return solNoonUTC;
     }
 
-    private void calcSunUTC(boolean sunset)
+    private double calcSunUTC(boolean sunset,double alt_angle)
     {
 
 
@@ -245,7 +200,7 @@ public class SunCalc
 
         double eqTime = st.calcEquationOfTime();
         double solarDec = st.getSunDeclination();
-        double hourAngle = calcHourAngle(latitude, solarDec);
+        double hourAngle = calcHourAngle(latitude, solarDec,alt_angle);
         if (sunset)
         {
             hourAngle *= -1;
@@ -255,31 +210,9 @@ public class SunCalc
         timeUTC = 720 + timeDiff - eqTime; // in minutes
 
         // alert("eqTime = " + eqTime + "\nsolarDec = " + solarDec + "\ntimeUTC = " + timeUTC);
-        if (sunset)
-        {
-            setmin = timeUTC;
-        }
-        else
-        {
-            risemin = timeUTC;
-        }
-
+        return timeUTC;
 
     }
 
-    public static String Min2Str(double min)
-    {
-        int imin = (int) (min + 0.5);
-        String stime = "" + (imin / 60);
-        imin = imin % 60;
-        if (imin < 10)
-        {
-            stime += ":0" + imin;
-        }
-        else
-        {
-            stime += ":" + imin;
-        }
-        return stime;
-    }
+
 }

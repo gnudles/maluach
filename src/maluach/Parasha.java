@@ -7,6 +7,7 @@ package maluach;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import maluach.YDate.JewishDate;
 /**
  *
  * @author orr
@@ -63,33 +64,33 @@ public class Parasha {
         private static final int SHABAT_PARA = 2;
         private static final int SHABAT_HACHODESH = 3;
         private static final int SHABAT_HAGADOL = 4;
-        static String parshiot4(Hdate h)
+        static String parshiot4(YDate h)
         {
-            Hdate tweaked=new Hdate();
-            tweaked.Set(h);
-            if (h.get_day_in_week()==7)
+            YDate tweaked=YDate.createFrom(h);
+            if (h.hd.dayInWeek()==7)
             {
-                tweaked.moveday(6);
-                if (tweaked.get_hd_month()==7) //maybe shabat hachodesh or shabat hagadol
+                tweaked.seekBy(6);
+                if (tweaked.hd.monthID()==JewishDate.M_ID_NISAN) //maybe shabat hachodesh or shabat hagadol
                 {
-                    if (tweaked.get_hd_day_in_month()<=7)
+                    if (tweaked.hd.dayInMonth()<=7)
                         return special_shabat[SHABAT_HACHODESH];
-                    if (h.get_hd_day_in_month()<15 && h.get_hd_day_in_month()>7)
+                    if (h.hd.dayInMonth()<15 && h.hd.dayInMonth()>7)
                         return special_shabat[SHABAT_HAGADOL];
                 }
-                if (tweaked.get_hd_month()==6 || tweaked.get_hd_month()==14)//adar or adar II
+                if (tweaked.hd.monthID()==JewishDate.M_ID_ADAR ||
+                    tweaked.hd.monthID()==JewishDate.M_ID_ADAR_II)//adar or adar II
                 {
-                    if (tweaked.get_hd_day_in_month()<=7)
+                    if (tweaked.hd.dayInMonth()<=7)
                         return special_shabat[SHABAT_SHKALIM];
-                    if (h.get_hd_day_in_month()<14 && h.get_hd_day_in_month()>7)
+                    if (h.hd.dayInMonth()<14 && h.hd.dayInMonth()>7)
                         return special_shabat[SHABAT_ZAKHOR];
-                    if (h.get_hd_day_in_month()>16)
+                    if (h.hd.dayInMonth()>16)
                         return special_shabat[SHABAT_PARA];
                 }
             }
             return "";
         }
-        static String GetParashaFor(Hdate h)
+        static String GetParashaFor(JewishDate h)
         {
             int pnum=GetParashaInt(h);
             if (pnum>=55)
@@ -97,24 +98,26 @@ public class Parasha {
                 pnum-=55;
                 return parashot[double_reading[pnum]]+", "+parashot[double_reading[pnum]+1];
             }
-            return parashot[pnum];
+            if (parashot[pnum].length()>0)
+                return "פרשת "+parashot[pnum];
+            return "";
         }
-	static int GetParashaInt(Hdate h)
+	static int GetParashaInt(JewishDate h)
 	{
-            int hd_mon=h.get_hd_month();
-            int hd_day=h.get_hd_day_in_month();
-            if (hd_mon == 1)
+            int hd_mon_id=h.monthID();
+            int hd_day=h.dayInMonth();
+            if (hd_mon_id == JewishDate.M_ID_TISHREI)
 		if (hd_day == 22 ) return 54;		/* simhat tora  */
             /* if not shabat return none */
-            if (h.get_day_in_week() != 7)
+            if (h.dayInWeek()!= 7)
             {
 		return 0;
             }
             
             int reading;
-            int hd_weeks=h.get_hd_weeks();
-            int hd_new_year_dw=h.get_hd_new_year_dw();
-            int hd_year_type=h.get_hd_year_type();
+            int hd_weeks=h.week();
+            int hd_new_year_dw=h.yearWeekDay();
+            int hd_year_type=h.getYearTypeWeekDayLength();
 	switch (hd_weeks)
 	{
 	case  1:
@@ -171,14 +174,14 @@ public class Parasha {
 		}
 		
 		/* pesach */
-		if ((hd_mon == 7) && (hd_day > 14))
+		if ((hd_mon_id == JewishDate.M_ID_NISAN) && (hd_day > 14))
 		{
 			if (hd_day < 22)
 				return 0;
 		}
 		
 		/* Pesach allways removes one */
-		if (((hd_mon == 7) && (hd_day > 21)) || (hd_mon > 7 && hd_mon < 13))
+		if (((hd_mon_id == JewishDate.M_ID_NISAN) && (hd_day > 21)) || (hd_mon_id > JewishDate.M_ID_NISAN))
 		{
 			reading--;
 

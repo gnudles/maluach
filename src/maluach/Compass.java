@@ -8,6 +8,9 @@ package maluach;
  *
  * @author orr
  */
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Graphics;
 
@@ -20,6 +23,11 @@ public final class Compass extends Canvas implements DisplayBack, ScreenView
     private final double jerusalemLatitude = 31.77694444444;
     private boolean hasSensor;
     private boolean tooClose;
+    private float sunElev;
+    private float sunAz;
+    private float moonElev;
+    private float moonAz;
+    private String time_now;
     CompassThread compassRun;
 
     private Compass()
@@ -54,7 +62,38 @@ public final class Compass extends Canvas implements DisplayBack, ScreenView
             tooClose=false;
         double y = Math.sin(dLon) * Math.cos(lat2);
         double x = Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
-        base_rotation = SunTimes.fast_atan2(y, x);
+        base_rotation = MicroMath.fast_atan2(y, x);
+        
+        
+        Calendar todays = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        todays.setTime(new Date());
+        double deltaT=65;//seconds
+        float timezone=TzDstManager.GetTimeZoneAt(new Date());
+        double jd=SunMonPosition.calcJD(todays.get(Calendar.DAY_OF_MONTH), todays.get(Calendar.MONTH)+1, todays.get(Calendar.YEAR));
+        //jd=SunMonPosition.calcJD(6, 4, todays.get(Calendar.YEAR));
+        int hour=todays.get(Calendar.HOUR_OF_DAY);
+        int minute=todays.get(Calendar.MINUTE);
+        int second=todays.get(Calendar.SECOND);
+        double localtime = (hour/*-timezone*/+minute/60.0
+                           +(second)/3600.0)/24.0;
+        jd+=localtime;
+        double TDT=jd+deltaT/3600.0/24.0;
+        time_now=Format.Min2Str(((hour+timezone)%24)*60+minute);
+        double gmst=SunMonPosition.gMST(jd);
+        double lat = MaluachPreferences.GetLatitude()*SunMonPosition.DEG2RAD; // geodetic latitude of observer on WGS84
+        double lon = MaluachPreferences.GetLongitude()*SunMonPosition.DEG2RAD; // geodetic latitude of observer on WGS84
+        double lmst = SunMonPosition.gMST2LMST(gmst, lon);
+        double height = 0.001;
+        SunMonPosition.Coor observerCart = SunMonPosition.observer2EquCart(lon, lat, height, gmst);
+        SunMonPosition.Coor sunCoor  = SunMonPosition.sunPosition(TDT, lat, lmst*15.*SunMonPosition.DEG2RAD);   // Calculate data for the Sun at given time
+        SunMonPosition.Coor moonCoor = SunMonPosition.moonPosition(sunCoor, TDT, observerCart, lmst*15.*SunMonPosition.DEG2RAD);    // Calculate data for the Moon at given time
+        
+        double elev=sunCoor.alt+SunMonPosition.refraction(sunCoor.alt)*SunMonPosition.DEG2RAD;//radians
+        double az=sunCoor.az;//radians
+        sunElev=(float)(sunCoor.alt+SunMonPosition.refraction(sunCoor.alt)*SunMonPosition.DEG2RAD);//radians
+        sunAz=(float)sunCoor.az;//radians
+        moonElev=(float)(moonCoor.alt+SunMonPosition.refraction(moonCoor.alt)*SunMonPosition.DEG2RAD);//radians
+        moonAz=(float)moonCoor.az;
         
     }
 
@@ -118,6 +157,8 @@ public final class Compass extends Canvas implements DisplayBack, ScreenView
             g.drawLine(cx , cy , cardirx, cardiry);
             g.setColor(0x55ff33);
             g.fillArc(cardirx-5,cardiry-5,11,11,0,360);
+            g.setColor(0xffffff);
+            g.drawString(time_now, 2, getHeight()-2, Graphics.LEFT|Graphics.BOTTOM);
         }
         else
         {
@@ -125,25 +166,54 @@ public final class Compass extends Canvas implements DisplayBack, ScreenView
             g.drawString("The entered location is too", 2, getHeight()-4-fonth, Graphics.LEFT|Graphics.BOTTOM);
             g.drawString("close to the Western Wall", 2, getHeight()-2, Graphics.LEFT|Graphics.BOTTOM);
         }
-        Hdate nowdate=new Hdate();
-        SunPos sp = new SunPos(nowdate.get_hd_jd(), MaluachPreferences.GetLatitude(), -MaluachPreferences.GetLongitude(), (int) (MaluachPreferences.GetTimeZoneAt(nowdate) * 60));
-        sp.calcSunAz();
-        double elev=sp.getSunElevation();
-        if (elev > -18.0 && elev < 198.0)
-        {
-            double az=SunTimes.degToRad(sp.getSunAzimuth());
-            elev=SunTimes.degToRad(elev);
-            cardirx = cx + (int) (Math.sin(az-rotation) * radius*Math.cos(elev));
-            cardiry = cy - (int) (Math.cos(az-rotation) * radius*Math.cos(elev));
+        
+        float elev=sunElev;//radians
+        float az=sunAz;//radians
+        //SunPos sp = new SunPos((int)jd, MaluachPreferences.GetLatitude(), -MaluachPreferences.GetLongitude(), (int)(timezone * 60));
+        //sp.calcSunAz();
+        //elev=sp.getSunElevation()*SunMonPosition.DEG2RAD;
+        
+        {//draw sun
+            //double az=SunTimes.degToRad(sp.getSunAzimuth());
+            //elev=SunTimes.degToRad(elev);
+            cardirx = cx + (int) (Math.sin(az - rotation) * radius * Math.cos(elev));
+            cardiry = cy - (int) (Math.cos(az - rotation) * radius * Math.cos(elev));
             g.setColor(0xffff00);
-            g.fillArc(cardirx-13,cardiry-13,27,27,0,360);
+            if (elev > -18.0 * SunMonPosition.DEG2RAD && elev < 198.0 * SunMonPosition.DEG2RAD)
+            {
+                g.fillArc(cardirx - 13, cardiry - 13, 27, 27, 0, 360);
+            }
+            else
+            {
+                g.drawArc(cardirx - 13, cardiry - 13, 27, 27, 0, 360);
+            }
             g.setColor(0xff0000);
-            g.drawString("SUN", cardirx, cardiry -fontfix, Graphics.TOP | Graphics.HCENTER);
+            g.drawString("שמש", cardirx, cardiry - fontfix, Graphics.TOP | Graphics.HCENTER);
+        }
+        elev=moonElev;//radians
+        az=moonAz;//radians
+        {
+            //double az=SunTimes.degToRad(sp.getSunAzimuth());
+            //elev=SunTimes.degToRad(elev);
+            cardirx = cx + (int) (Math.sin(az - rotation) * radius * Math.cos(elev));
+            cardiry = cy - (int) (Math.cos(az - rotation) * radius * Math.cos(elev));
+            g.setColor(0xaaaaaa);
+            if (elev > -18.0 * SunMonPosition.DEG2RAD && elev < 198.0 * SunMonPosition.DEG2RAD)
+            {
+                g.fillArc(cardirx - 13, cardiry - 13, 27, 27, 0, 360);
+            }
+            else
+            {
+                g.drawArc(cardirx - 13, cardiry - 13, 27, 27, 0, 360);
+            }
+            g.setColor(0xff0000);
+            g.drawString("ירח", cardirx, cardiry - fontfix, Graphics.TOP | Graphics.HCENTER);
         }
         g.setColor(0xffffff);
         g.fillArc(cx-5,cy-5,11,11,0,360);
     }
 
+    
     public boolean Back()
     {
         compassRun.interrupt();

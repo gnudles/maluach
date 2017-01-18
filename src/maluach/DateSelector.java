@@ -6,6 +6,7 @@ package maluach;
 
 import javax.microedition.lcdui.*;
 import javax.microedition.lcdui.Graphics;
+import maluach.YDate.*;
 
 public class DateSelector extends DateShowers implements DisplayBack, DisplaySelect,ScreenView,CommandCheck
 {
@@ -24,10 +25,11 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
     private byte active_line;
     private byte lines;
     //private Hdate m_dateCursor;
-    private int last_jd;
+    private int last_day_count;
     private int ppx, ppy;
     private boolean ppdrag = false;
     private boolean dragged;
+    private boolean show_hebrew;
     final private String[] fields =
     {
         "סוג תאריך", "שנה", "חודש", "יום", "הפרש ימים"
@@ -63,32 +65,33 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
     private DateSelector()
     {
         super();
+        show_hebrew=MaluachPreferences.HebrewInteface();
         clearkeyboard = false;
         onlycursor = -1;
         keyboardmove = -1;
         keyboardkey = -1;
         repainted = false;
         gregorian = false;
-        m_dateCursor = new Hdate();
+        m_dateCursor = YDate.getNow();
         this.setFullScreenMode(false);
         active_line = 0;
         lines = 5;
         keyboardCellw = (getWidth() - keyboardKeys.length - 2) / keyboardKeys.length;
     }
 
-    public void SetBeginingCursor(Hdate cursor)
+    public void SetBeginingCursor(YDate cursor)
     {
-        m_dateCursor.Set(cursor);
-        last_jd = m_dateCursor.get_hd_jd();
+        m_dateCursor=YDate.createFrom(cursor);
+        last_day_count = m_dateCursor.gd.daysSinceBeginning();
     }
 
-    public void jumpTo(Hdate cursor)
+    public void jumpTo(YDate cursor)
     {
-        m_dateCursor.Set(cursor);
+        m_dateCursor=YDate.createFrom(cursor);
         repaint();
     }
 
-    public Hdate GetDate()
+    public YDate GetDate()
     {
         return m_dateCursor;
     }
@@ -122,15 +125,19 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
         {
             if (active_line == 4)
             {
-                m_dateCursor.change_hd_jd(keyboardnum + last_jd);
+                m_dateCursor.setByDays(keyboardnum + last_day_count);
             }
             else if (gregorian)
             {
-                m_dateCursor.change_gd_year(keyboardnum);
+                int month=m_dateCursor.gd.month();
+                int dayinmonth=m_dateCursor.gd.dayInMonth();
+                m_dateCursor.setByGregorianYearMonthDay(keyboardnum,month,dayinmonth);
             }
             else
             {
-                m_dateCursor.change_hd_year(keyboardnum);
+                int month_id=m_dateCursor.hd.monthID();
+                int dayinmonth=m_dateCursor.hd.dayInMonth();
+                m_dateCursor.setByHebrewYearMonthIdDay(keyboardnum,month_id,dayinmonth);
             }
             keyboardkey = -1;
             keyboardmove = -1;
@@ -192,16 +199,16 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                 {
                     if (gregorian)
                     {
-                        lstr = "" + m_dateCursor.get_gd_year();
+                        lstr = "" + m_dateCursor.gd.year();
                     }
                     else
                     {
-                        lstr = "" + m_dateCursor.get_hd_year();
+                        lstr = "" + m_dateCursor.hd.year();
                     }
                 }
                 if (!gregorian)
                 {
-                    g.drawString(Hdate.get_int_string(m_dateCursor.get_hd_year(), true), (getWidth() - field_width[1]) * 3 / 4, yoff, Graphics.TOP | Graphics.HCENTER);
+                    g.drawString(Format.HebIntString(m_dateCursor.hd.year(), true), (getWidth() - field_width[1]) * 3 / 4, yoff, Graphics.TOP | Graphics.HCENTER);
                     xoff /= 2;
                 }
                 g.drawString(lstr, xoff, yoff, Graphics.TOP | Graphics.HCENTER);
@@ -216,20 +223,20 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
             case 2:
                 if (gregorian)
                 {
-                    lstr = "" + m_dateCursor.get_gd_month();
+                    lstr = "" + m_dateCursor.gd.month();
                 }
                 else
                 {
-                    lstr = "" + m_dateCursor.get_hd_month_nice();
+                    lstr = "" + m_dateCursor.hd.monthInYear();
                 }
                 g.drawString(lstr, (getWidth() - field_width[2]) / 4, yoff, Graphics.TOP | Graphics.HCENTER);
                 if (gregorian)
                 {
-                    lstr = "" + m_dateCursor.get_gd_month_name();
+                    lstr = "" + m_dateCursor.gd.monthName(show_hebrew);
                 }
                 else
                 {
-                    lstr = "" + m_dateCursor.get_hd_month_name();
+                    lstr = "" + m_dateCursor.hd.monthName(show_hebrew);
                 }
                 g.drawString(lstr, (getWidth() - field_width[2]) * 3 / 4, yoff, Graphics.TOP | Graphics.HCENTER);
                 if (stop)
@@ -244,13 +251,13 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                 xoff = (getWidth() - field_width[3]) / 2;
                 if (gregorian)
                 {
-                    lstr = "" + m_dateCursor.get_gd_day();
+                    lstr = Integer.toString(m_dateCursor.gd.dayInMonth());
                 }
                 else
                 {
-                    g.drawString(Hdate.get_int_string(m_dateCursor.get_hd_day_in_month(), true), (getWidth() - field_width[3]) * 3 / 4, yoff, Graphics.TOP | Graphics.HCENTER);
+                    g.drawString(Format.HebIntString(m_dateCursor.hd.dayInMonth(), true), (getWidth() - field_width[3]) * 3 / 4, yoff, Graphics.TOP | Graphics.HCENTER);
                     xoff /= 2;
-                    lstr = "" + m_dateCursor.get_hd_day_in_month();
+                    lstr = Integer.toString(m_dateCursor.hd.dayInMonth());
                 }
                 g.drawString(lstr, xoff, yoff, Graphics.TOP | Graphics.HCENTER);
                 if (stop)
@@ -264,11 +271,11 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
             case 4:
                 if (active_line == 4 && keyboardkey != -1)
                 {
-                    lstr = "" + keyboardnum;
+                    lstr = Integer.toString(keyboardnum);
                 }
                 else
                 {
-                    lstr = "" + (m_dateCursor.get_hd_jd() - last_jd);
+                    lstr = Integer.toString(m_dateCursor.gd.daysSinceBeginning()- last_day_count);
                 }
                 g.drawString(lstr, (getWidth() - field_width[4]) / 2, yoff, Graphics.TOP | Graphics.HCENTER);
         }
@@ -351,6 +358,8 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
         yoff = 2 + linespacing * lines;
 
         //keyboard stuff
+        
+        //TODO... replace keyboard with IntSelect
         if (keyboardkey != -1)
         {
 
@@ -423,63 +432,66 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
             case 1:
                 if (gregorian)
                 {
-                    m_dateCursor.change_gd_year(m_dateCursor.get_gd_year() + dir);
+                    m_dateCursor.setByGregorianYearMonthDay(m_dateCursor.gd.year()+dir,m_dateCursor.gd.month(),m_dateCursor.gd.dayInMonth());
                 }
                 else
                 {
-                    m_dateCursor.change_hd_year(m_dateCursor.get_hd_year() + dir);
+                    m_dateCursor.setByHebrewYearMonthIdDay(m_dateCursor.hd.year()+dir,m_dateCursor.hd.monthID(),m_dateCursor.hd.dayInMonth());
                 }
                 break;
             case 2:
-                if (dir == -1)
+                if (gregorian)
                 {
-                    if (gregorian)
-                    {
-                        m_dateCursor.change_gd_month_prev();
-                    }
-                    else
-                    {
-                        m_dateCursor.change_hd_month_prev();
-                    }
+                    int month=m_dateCursor.gd.month();
+                    month+=dir;
+                    if (month>12)
+                        month=1;
+                    else if(month==0)
+                        month=12;
+                    m_dateCursor.setByGregorianYearMonthDay(m_dateCursor.gd.year(),month,m_dateCursor.gd.dayInMonth());
                 }
                 else
                 {
-                    if (gregorian)
-                    {
-                        m_dateCursor.change_gd_month_next();
-                    }
-                    else
-                    {
-                        m_dateCursor.change_hd_month_next();
-                    }
+                    int month=m_dateCursor.hd.monthInYear();
+                    int num_months=JewishDate.calculateYearMonths(m_dateCursor.hd.year());
+                    month+=dir;
+                    if (month>num_months)
+                        month=1;
+                    else if(month==0)
+                        month=num_months;
+                    int monthID=JewishDate.monthID(num_months,month);
+                    m_dateCursor.setByHebrewYearMonthIdDay(m_dateCursor.hd.year(),monthID,m_dateCursor.hd.dayInMonth());
                 }
                 break;
             case 3:
-                if (dir == -1)
+                if (gregorian)
                 {
-                    if (gregorian)
-                    {
-                        m_dateCursor.change_gd_day_prev();
-                    }
-                    else
-                    {
-                        m_dateCursor.change_hd_day_prev();
-                    }
+                    int dayInMonth=m_dateCursor.gd.dayInMonth();
+                    dayInMonth+=dir;
+                    int month_length=m_dateCursor.gd.monthLength();
+                    if (dayInMonth>month_length)
+                        dayInMonth=1;
+                    else if(dayInMonth==0)
+                        dayInMonth=month_length;
+                    m_dateCursor.setByGregorianYearMonthDay(m_dateCursor.gd.year(),
+                            m_dateCursor.gd.month(),dayInMonth);
                 }
                 else
                 {
-                    if (gregorian)
-                    {
-                        m_dateCursor.change_gd_day_next();
-                    }
-                    else
-                    {
-                        m_dateCursor.change_hd_day_next();
-                    }
+                    int dayInMonth=m_dateCursor.hd.dayInMonth();
+                    dayInMonth+=dir;
+                    int month_length=m_dateCursor.hd.monthLength();
+                    if (dayInMonth>month_length)
+                        dayInMonth=1;
+                    else if(dayInMonth==0)
+                        dayInMonth=month_length;
+                    int monthId=m_dateCursor.hd.monthID();
+                    m_dateCursor.setByHebrewYearMonthIdDay(m_dateCursor.hd.year(),monthId,dayInMonth);
                 }
+
                 break;
             case 4:
-                m_dateCursor.change_hd_jd(m_dateCursor.get_hd_jd() + dir);
+                m_dateCursor.seekBy(dir);
                 break;
 
         }
@@ -641,24 +653,24 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
     private void showInfo()
     {
         String lstr;
-        lstr = "יום בשבוע: " + m_dateCursor.get_day_in_week_name();
+        lstr = "יום בשבוע: " + m_dateCursor.hd.dayInWeekName(show_hebrew);
         lstr += "\nימים בשנה: ";
         if (gregorian)
         {
-            lstr += m_dateCursor.get_gd_year_size();
+            lstr += m_dateCursor.gd.yearLength();
         }
         else
         {
-            lstr += m_dateCursor.get_hd_year_size();
+            lstr += m_dateCursor.hd.yearLength();
         }
         lstr += "\nימים בחודש: ";
         if (gregorian)
         {
-            lstr += m_dateCursor.get_gd_month_size();
+            lstr += m_dateCursor.gd.monthLength();
         }
         else
         {
-            lstr += m_dateCursor.get_hd_month_size();
+            lstr += m_dateCursor.hd.monthLength();
         }
         maluach.showAlert("מידע", lstr, AlertType.INFO);
         
@@ -801,7 +813,7 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
     {
         c_setCursor = new Command("קבע יחוס", Command.ITEM, 4);
         addCommand(c_setCursor);
-        c_showInfo = new Command("מידע", Command.ITEM, 6);
+        c_showInfo = new Command("מידע מאפיין", Command.ITEM, 6);
         addCommand(c_showInfo);
         addCommand(CommandPool.getC_back());
 
@@ -832,7 +844,7 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
     {
         if (c==c_setCursor)
         {
-            last_jd = m_dateCursor.get_hd_jd();
+            last_day_count = m_dateCursor.gd.daysSinceBeginning();
             repaint();
             return true;
         }
