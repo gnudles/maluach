@@ -14,7 +14,7 @@ public class SunCalc
     private double JD;
     YDate.TimeZoneProvider timezone;
     private double noonEqTime, noonSolarDec, firstHourAngle, noonmin, risemin, setmin;
-    private double risemin_16, setmin_16;
+    private double risemin_16, setmin_16, setmin_8;
     private double risemin_11;
 
     public SunCalc(double JD, double latitude, double longitude, YDate.TimeZoneProvider timezone)
@@ -38,7 +38,9 @@ public class SunCalc
         setmin=calcSunUTC(true,sun_alt_angle);
         risemin_16=calcSunUTC(false,106.01);
         setmin_16=calcSunUTC(true,106.01);
+        setmin_8=calcSunUTC(true,98.5);
         risemin_11=calcSunUTC(false,101.5);
+        
 
         /*
         noonmin += timezone.getOffset(d);
@@ -119,11 +121,15 @@ public class SunCalc
     {
         return noonmin + 19 * (setmin - noonmin) / 24.0;//
     }
-
-    public double getVisibleStars()// 24 minutes after the sunset
+    public double getVisibleStars()// 8.5 degrees
     {
-        return setmin + 1 * (setmin - noonmin) / 15.0;//
+        return setmin_8;
     }
+    
+    /*public double getVisibleStars()// 24 minutes zmaniot after the sunset
+    {
+        return setmin + 1 * (setmin - noonmin) / 15.0;
+    }*/
     public double getBiurHametz()
     {
         return (risemin-72)+5*((setmin +72) - (risemin-72))/12.0;//

@@ -38,6 +38,24 @@ public class YDate
         {"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"},
         {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"},
     };
+    public static final String[][] zodiac_names =
+    {
+        {"טלה", "שור", "תאומים", "סרטן", "אריה", "בתולה", "מאזנים", "עקרב", "קשת", "גדי", "דלי", "דגים"},
+        {"Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"}
+    };
+    /*
+    fire: Aries Leo Sagittarius
+    earth: Taurus Virgo Capricorn
+    wind: Gemini Libra Aquarius
+    water: Cancer Scorpio Pisces
+       fire doesn't connect with water
+       earth doesn't connect with wind
+    */
+    public static final String[][] four_elements_names =
+    {
+        {"אש", "עפר", "רוח", "מים"},
+        {"fire", "earth", "wind", "water"}
+    };
     public static final String[][] star_names =
     {
         {"כוכב", "לבנה", "שבתאי", "צדק", "מאדים", "חמה", "נגה"},
@@ -314,6 +332,7 @@ public class YDate
     public static final class JewishDate
     {
         static final int DAYS_OF_4119=1504084;
+        static final int DAYS_OF_TKUFA_CYCLE_4117=1503540;
         static final int DAYS_OF_6001=2191466;
         static final int N_YEAR_TYPES = 14;
         static final int HOUR = 1080;
@@ -324,6 +343,7 @@ public class YDate
         static final int MONTHS_IN_19Y = 235;//12*12+7*13
         static final int MOLAD_ZAKEN_ROUNDING = 6*HOUR;
         static final int TKUFA = 91 * DAY + 7 * HOUR + 540;
+        static final int MAZAL = 30 * DAY + 10 * HOUR + 540;
         
         static final int M_ID_TISHREI = 0;
         static final int M_ID_CHESHVAN = 1;
@@ -506,6 +526,69 @@ public class YDate
                 return titles[7];
             return titles[(ShmitaOrdinal()-1)%7];
         }
+        public int dayInMazal()
+        {
+            int d = (TkufotCycle()+1) * DAY-1;
+            d = d % MAZAL;
+            return (int)(d/DAY);
+        }
+        public int dayInTkufa()
+        {
+            int d = (TkufotCycle()+1) * DAY-1;
+            d = d % TKUFA;
+            return (int)(d/DAY);
+        }
+        public long MazalParts()
+        {
+            long mazal_parts=((long)daysSinceBeginning()+1-DAYS_OF_TKUFA_CYCLE_4117)*(long)DAY-1;
+            mazal_parts=mazal_parts-(mazal_parts % MAZAL);
+            mazal_parts+=(long)DAYS_OF_TKUFA_CYCLE_4117*DAY;
+            return mazal_parts;
+        }
+        public long TkufaParts()
+        {
+            long tkufa_parts=((long)daysSinceBeginning()+1-DAYS_OF_TKUFA_CYCLE_4117)*(long)DAY-1;
+            tkufa_parts=tkufa_parts-(tkufa_parts % TKUFA);
+            tkufa_parts+=(long)DAYS_OF_TKUFA_CYCLE_4117*DAY;
+            return tkufa_parts;
+        }
+        public int MazalType()
+        {
+            int d = (TkufotCycle()+1) * DAY-1;
+            return (d / MAZAL)%12;
+        }
+        public int TkufaType()
+        {
+            int d = (TkufotCycle()+1) * DAY-1;
+            d = d / TKUFA;
+            return (M_ID_NISAN+(d%4)*3)%14;
+        }
+        public String MazalName(boolean Heb)
+        {
+            if (Heb)
+                return "מזל "+zodiac_names[0][MazalType()];
+            else
+                return "Zodiac. "+zodiac_names[1][MazalType()];
+        }
+        public String TkufaName(boolean Heb)
+        {
+            if (Heb)
+                return "תקופת "+monthNameByID(TkufaType(),Heb);
+            else
+                return monthNameByID(TkufaType(),Heb)+" Period";
+        }
+        public String MazalBeginning(TimeZoneProvider tz)
+        {
+            Date m=partsToUTC(MazalParts());
+            return FormatUTC(m,tz,true);
+        }
+        public String TkufaBeginning(TimeZoneProvider tz)
+        {
+            long parts=TkufaParts();
+            Date m=partsToUTC(parts);
+            return FormatUTC(m,tz,true)+"\nמוסיפים "+((TkufaType()%M_ID_NISAN==M_ID_TEVET)?"60":"30")+" דקות לפני ואחרי."
+                    +"\nתחילת תקופה ב"+starForHour(parts, true);
+        }
         /**
          * find out how many days passed from the last sun blessing
          *
@@ -514,7 +597,7 @@ public class YDate
         public int TkufotCycle()//when this method return 0, we need to do sun blessing in nissan.
         {
             //10227=number of days in 28 years when year=365.25 days
-            return (daysSinceBeginning()-1503540)%10227;
+            return (daysSinceBeginning()-DAYS_OF_TKUFA_CYCLE_4117)%10227;
             //this date (1503540) is 19 in Nisan, 4117, wednesday
             //there is 112 tkofut in 28 year (4*28) or in 10227 days
             //you can find out which tkufa by tkufa=TkufotCycle()*112/10227
@@ -533,30 +616,24 @@ public class YDate
         }
         String starForHour(long parts,boolean Heb)
         {
-            int hour=(int)(parts%(DAY*7))/HOUR;
-            return star_names[Heb?0:1][hour%7];
+            int hour=(int)((parts/HOUR)%7);
+            return star_names[Heb?0:1][hour];
         }
         public long MoladParts()
         {
             return year_molad_parts+(month-1)*MONTH;
         }
-        public Date MoladUTC()//this gives 21 minutes before 18 hours.
-                //subtracting 21 minutes is fix to move from cairo clock to jerusalem clock.
-                //the longitude of jerusalem is 35.213. 35.213DEG*12HOURS/180DEG=2.347HOURS=2HOURS+20.85MINUTES
-                //see http://tvunah.org/%d7%91%d7%a8%d7%9b%d7%aa-%d7%94%d7%97%d7%95%d7%93%d7%a9-%d7%95%d7%94%d7%9b%d7%a8%d7%96%d7%aa-%d7%94%d7%9e%d7%95%d7%9c%d7%93-%d7%9e%d7%a7%d7%95%d7%a8-%d7%94%d7%9e%d7%a0%d7%94%d7%92/
-                //see http://www.daat.ac.il/encyclopedia/value.asp?id1=3628
+        public Date partsToUTC(long parts)
         {
-            long parts=MoladParts();
             int days=(int)(parts/DAY);
             int single_parts=(int)(parts%DAY);
             int hours=(int)(single_parts/HOUR);
             single_parts=single_parts%HOUR;
-            //we subtract 1 day but we add 18 hours. I mean 16 hours. I mean 15:39
+            //we subtract 1 day but we add 18 hours. I mean 16 hours . I mean 15:39
             long millis=(long)(days-EPOCH_DAY-1)*3600L*24*1000L;
             final int offset_utc=15*60+39;// or you can use 16*60 instead
             millis+=(hours*3600L*1000L+single_parts*10000L/3+offset_utc*60L*1000L);
             return new Date(millis);
-            //TODO: test this
         }
         String dayPartName(int minutes)
         {
@@ -571,6 +648,20 @@ public class YDate
             if (minutes<17*60)
                 return "אחה\"צ";
             return "ערב";
+        }
+        public String FormatUTC(Date t,TimeZoneProvider tz, boolean Heb)
+        {
+            String lstr;
+            int utc_minute_offset=(int)(tz.getOffset(t)*60);
+            
+            String clock_type="UTC"+(utc_minute_offset>=0?"+":"-")+String.valueOf(Math.abs(utc_minute_offset))+"MIN";
+            long millis=t.getTime()+utc_minute_offset*60000L+(EPOCH_DAY-DAYS_OF_4119)*(24*60*60000L);//DAYS_OF_4119 is monday
+            int minutes=(int)((millis/60000L)%(24*60));
+            lstr=Format.Min2Str(minutes);
+            String day_part_name=dayPartName(minutes);
+            lstr+=" ("+day_names[Heb?0:1][(int)((millis/(24*60*60000))+1)%7] +" "+day_part_name+ ")";
+            lstr+=" ("+clock_type+ ")";
+            return lstr;
         }
         public String MoladString(TimeZoneProvider tz)
         { 
@@ -592,24 +683,9 @@ public class YDate
             lstr+=" חלקים";
             lstr+="\n";
             //int minutes=(single_parts)/(1080/60);
-            Date m=MoladUTC();
-            int utc_minute_offset=(int)(tz.getOffset(m)*60);
-            
-            String clock_type="UTC"+(utc_minute_offset>=0?"+":"-")+String.valueOf(utc_minute_offset)+"MIN";
-            //final int offset_cairo=16*60;
-            /*final int offset_jerusalem=15*60+39;
-            minutes=(hours*60+(int)utc_minute_offset+offset_jerusalem+minutes)%24*60;
-            lstr+=Format.Min2Str(minutes);
-            lstr+=" ו ";
-            lstr+=String.valueOf(parts%(1080/60));
-            lstr+=" חלקים";
-            */
-            long millis=m.getTime()+utc_minute_offset*60000+(EPOCH_DAY-DAYS_OF_4119)*(24*60*60000L);//DAYS_OF_4119 is monday
-            int minutes=(int)((millis/60000)%(24*60));
-            lstr+=Format.Min2Str(minutes);
-            String day_part_name=dayPartName(minutes);
-            lstr+=" ("+day_names[0][(int)((millis/(24*60*60000))+1)%7] +" "+day_part_name+ ")";
-            lstr+=" ("+clock_type+ ")";
+            Date m=partsToUTC(parts);
+            lstr+=FormatUTC(m,tz,true);
+            lstr+="\nהמולד ב"+starForHour(parts, true);
             return lstr;
         }
         public int dayInMonth()//starts from one
@@ -693,7 +769,7 @@ public class YDate
         {
             return monthID(calculateYearMonths(year),this.month);
         }
-        public String monthName(boolean Heb)
+        public String monthNameByID(int mID,boolean Heb)
         {
             final String[][] months =
             {
@@ -710,8 +786,11 @@ public class YDate
                 "Nisan", "Iyar",
                 "Sivan", "Tammuz", "Av", "Elul"},
             };
-            int mID=monthID();
             return months[Heb?0:1][mID];
+        }
+        public String monthName(boolean Heb)
+        {
+            return monthNameByID(monthID(),Heb);
         }
         public int daysSinceBeginning()
         {
@@ -923,22 +1002,6 @@ public class YDate
                 return years+1;
             return years;
         }
-//bad days to start new things from ha'ari
-/*
-nisan: 7,9,11,16,21,24
-iyar: 5,7,15,22
-sivan: 1,6,9,26
-tammuz: 14,15,17,20,29
-av: 9,10,19,20,22,27
-elul:9,17,28,29
-tishrei: 6,10,28
-cheshvan: 7,11,15,21
-kislev: 1,8
-tevet: 1,2,4,6,7,11,17,20,24,25,26,27
-shevat: 9,17,18,24,25,26
-adar I,II: 3,15,17,18,28
-
-*/
     }
 
     public JewishDate hd;

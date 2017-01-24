@@ -13,6 +13,7 @@ import javax.microedition.lcdui.TextField;
  */
 public class TimesForm extends Form implements ScreenView
 {
+    TextField ClockType;
     TextField AlotHashahar;
     TextField Sheyakir;
     TextField Zriha;
@@ -49,7 +50,9 @@ public class TimesForm extends Form implements ScreenView
     }
     TimesForm()
     {
-        super("זמנים");
+        super("זמנים ל" +MaluachPreferences.GetCity());
+        ClockType=new TextField("הפרש שעות",null,5,TextField.UNEDITABLE );
+        ClockType.setLayout(TextField.LAYOUT_RIGHT);
         AlotHashahar=new TextField("עלות השחר",null,5,TextField.UNEDITABLE );
         AlotHashahar.setLayout(TextField.LAYOUT_RIGHT);
         Sheyakir=new TextField("משיכיר",null,5,TextField.UNEDITABLE );
@@ -97,6 +100,8 @@ public class TimesForm extends Form implements ScreenView
         YDate dateCursor= (YDate)param;
         SunCalc sc = new SunCalc(SunMonPosition.calcJD(dateCursor.gd.dayInMonth(), dateCursor.gd.month(), dateCursor.gd.year()),
                 MaluachPreferences.GetLatitude(), -MaluachPreferences.GetLongitude(), new TzDstManager());
+        ClockType.setString(Format.Min2Str(sc.correctTz(4*60)-4*60));
+        super.append(ClockType);
         AlotHashahar.setString(Format.Min2Str(sc.correctTz(sc.getDawn())));
         super.append(AlotHashahar);
         Sheyakir.setString(Format.Min2Str(sc.correctTz(sc.getRecognize())));

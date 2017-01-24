@@ -291,4 +291,20 @@ public class YDateAnnual
         return annual_events[diaspora?1:0][year_ld_t-1];
     }
 
+    //bad days to start new things from ha'ari
+/*
+nisan: 7,9,11,16,21,24
+iyar: 5,7,15,22
+sivan: 1,6,9,26
+tammuz: 14,15,17,20,29
+av: 9,10,19,20,22,27
+elul:9,17,28,29
+tishrei: 6,10,28
+cheshvan: 7,11,15,21
+kislev: 1,8
+tevet: 1,2,4,6,7,11,17,20,24,25,26,27
+shevat: 9,17,18,24,25,26
+adar I,II: 3,15,17,18,28
+
+*/
 }

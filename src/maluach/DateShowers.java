@@ -90,7 +90,24 @@ public abstract class DateShowers extends Canvas implements CommandCheck
             lstr+="\n";
         if (m_dateCursor.hd.dayInMonth()==1 || m_dateCursor.hd.dayInMonth()==30)
             lstr+="ראש חדש\n";
+        else
+        {
+            if (m_dateCursor.hd.dayInMonth()>=23 && m_dateCursor.hd.dayInWeek()==7)
+                lstr+="מברכין החדש\n";
+        }
         lstr+="שנה "+m_dateCursor.hd.ShmitaTitle()+"\n";
+        int day_tkufa=m_dateCursor.hd.dayInTkufa();
+        int day_mazal=m_dateCursor.hd.dayInMazal();
+        lstr+="יום "+Integer.toString(day_tkufa+1)+" ל" +m_dateCursor.hd.TkufaName(true)+"\n";
+        if (day_tkufa==0)
+            lstr+="תחילת תקופה "+m_dateCursor.hd.TkufaBeginning(new TzDstManager())+"\n";
+        if (day_tkufa==59 && m_dateCursor.hd.TkufaType()==YDate.JewishDate.M_ID_TISHREI)
+            lstr+="מתחילים לומר תן טל ומטר בחו\"ל\n";
+        if (m_dateCursor.hd.dayInYear()==36 ) // 7 in chesvan
+            lstr+="מתחילים לומר תן טל ומטר בארץ ישראל\n";
+        lstr+="יום "+Integer.toString(day_mazal+1)+" ל" +m_dateCursor.hd.MazalName(true)+"\n";
+        if (day_tkufa!=0 && day_mazal == 0)
+            lstr+="חילוף מזל "+m_dateCursor.hd.MazalBeginning(new TzDstManager())+"\n";
         lstr+="ברכת החמה בעוד "+Integer.toString((10227-m_dateCursor.hd.TkufotCycle())%10227)+" יום\n";
         if (lstr.length()>0)
             maluach.showAlert("מידע", lstr, AlertType.INFO);

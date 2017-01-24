@@ -14,9 +14,15 @@ public class Format
 {
     public static String Min2Str(double min)
     {
+        int sign=1;
+        if (min<0)
+        {
+            sign=-1;
+            min=-min;
+        }
         int imin = (int) (min + 0.5);
         imin = imin % (60*24);
-        String stime = "" + (imin / 60);
+        String stime = ((sign==-1)?"-":"") + (imin / 60);
         imin = imin % 60;
         if (imin < 10)
         {
