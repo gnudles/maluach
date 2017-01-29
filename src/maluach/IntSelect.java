@@ -15,27 +15,36 @@ import javax.microedition.lcdui.TextField;
  *
  * @author orr
  */
-public class IntSelect extends Form implements CommandCheck,ScreenView
+public class IntSelect extends Form implements ScreenView,DisplaySelect
 {
-    public final class IntValue
+    public static interface ValueListen
     {
-        int value;
+        public void ValueChanged(int value);
+    }
+    public static final class IntValue
+    {
+        int m_value;
+        ValueListen m_vl;
 
-        public IntValue()
+        public IntValue(ValueListen vl)
         {
-            value=0;
+            m_value=0;
+            m_vl=vl;
         }
-        public IntValue(int new_value)
+        public IntValue(int new_value,ValueListen vl)
         {
-            value=new_value;
+            m_value=new_value;
+            m_vl=vl;
         }
         void setValue(int new_value)
         {
-            value=new_value;
+            m_value=new_value;
+            if (m_vl!=null)
+                m_vl.ValueChanged(m_value);
         }
         int value()
         {
-            return value;
+            return m_value;
         }
         
     }
@@ -61,16 +70,18 @@ public class IntSelect extends Form implements CommandCheck,ScreenView
     private void InitCommands()
     {
         addCommand(CommandPool.getC_back());
-        addCommand(new Command("בחר", Command.SCREEN, 1));
+        addCommand(CommandPool.getC_select());
     }
 
-    public boolean Execute(Command c)
+    public void Select()
     {
-        m_value=Integer.parseInt(tf_int.getString());
-        if (pval!=null)
-            pval.setValue(m_value);
-        m_selected=true;
-        return true;
+        if (tf_int.getString().length()>0)
+        {
+            m_value=Integer.parseInt(tf_int.getString());
+            if (pval!=null)
+                pval.setValue(m_value);
+            m_selected=true;
+        }
     }
     public static boolean selected()
     {

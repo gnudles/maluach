@@ -12,7 +12,7 @@ import maluach.YDate.*;
 public class YDateAnnual
 {
 
-    final static String[] holydays_str =
+    final static String[] events_str =
     {
         "",//0 -reserved for none
         "א' ראש השנה",
@@ -64,6 +64,76 @@ public class YDateAnnual
         "יום ירושלים",
         "יום המשפחה",
         "יום הזכרון ליצחק רבין",//49
+        "שחרור בעל התניא ממאסר",//50
+
+    };
+
+    static final short EV_NONE=0;
+    static final short EV_YOM_TOV=1;
+    static final short EV_HOL_HAMOED=2;
+    static final short EV_ISRU_HAG=3;
+    static final short EV_EREV_YOM_TOV=4;
+    static final short EV_MIRACLE=5;
+    static final short EV_CHASIDIC=6;
+    static final short EV_GOOD_DAYS=7;
+    static final short EV_NATIONAL=8;
+    static final short EV_TZOM=16;
+    static final short EV_REGALIM=32;
+    static final short EV_MEMORIAL=64;
+    static final short EV_HORBAN=128;
+    static final short[] events_type =
+    {
+        EV_NONE,//0 -reserved for none
+        EV_YOM_TOV,
+        EV_YOM_TOV,//2
+        EV_TZOM|EV_HORBAN,//3
+        EV_EREV_YOM_TOV,//4
+        EV_TZOM|EV_YOM_TOV,//5
+        EV_EREV_YOM_TOV,
+        EV_YOM_TOV|EV_REGALIM,
+        EV_YOM_TOV|EV_REGALIM,//Sukkot II
+        EV_HOL_HAMOED|EV_REGALIM,
+        EV_HOL_HAMOED|EV_REGALIM,//10
+        EV_YOM_TOV|EV_REGALIM,
+        EV_YOM_TOV|EV_REGALIM,
+        EV_YOM_TOV|EV_REGALIM,
+        EV_MIRACLE,
+        EV_MIRACLE,
+        EV_MIRACLE,//16
+        EV_MIRACLE,
+        EV_MIRACLE,
+        EV_MIRACLE,
+        EV_MIRACLE,
+        EV_MIRACLE,//21
+        EV_TZOM|EV_HORBAN,
+        EV_GOOD_DAYS,
+        EV_TZOM|EV_MIRACLE,
+        EV_MIRACLE,//25
+        EV_MIRACLE,
+        EV_MIRACLE,
+        EV_EREV_YOM_TOV,//28
+        EV_YOM_TOV|EV_REGALIM,
+        EV_YOM_TOV|EV_REGALIM,//Pesach II
+        EV_HOL_HAMOED|EV_REGALIM,//31
+        EV_YOM_TOV|EV_REGALIM,
+        EV_YOM_TOV|EV_REGALIM,
+        EV_REGALIM,
+        EV_GOOD_DAYS,//35
+        EV_EREV_YOM_TOV,
+        EV_YOM_TOV|EV_REGALIM,
+        EV_YOM_TOV|EV_REGALIM,//38//Shavuot II
+        EV_ISRU_HAG,
+        EV_TZOM|EV_HORBAN,//40
+        EV_TZOM|EV_HORBAN,
+        EV_GOOD_DAYS,
+        EV_EREV_YOM_TOV,
+        EV_NATIONAL|EV_MEMORIAL,
+        EV_NATIONAL|EV_MEMORIAL,
+        EV_NATIONAL,//46
+        EV_NATIONAL,
+        EV_NATIONAL,
+        EV_NATIONAL|EV_MEMORIAL,//49
+        EV_CHASIDIC,//50 - 19 kislev
 
     };
 
@@ -78,6 +148,7 @@ public class YDateAnnual
         {JewishDate.M_ID_TISHREI,21,10,1,0},//hoshana raba
         {JewishDate.M_ID_TISHREI,22,13,1,0},//shmini azeret simhat_tora
         {JewishDate.M_ID_TISHREI,23,39,1,0},//isru hag
+        {JewishDate.M_ID_KISLEV,19,50,1,0},//Baal HaTania got out of prison
         {JewishDate.M_ID_KISLEV,25,14,8,1},//Chanukah
         {JewishDate.M_ID_TEVET,10,22,1,0},//Tzom Asara B'Tevet
         {JewishDate.M_ID_SHEVAT,15,23,1,0},//Tu B'Shvat
@@ -128,7 +199,15 @@ public class YDateAnnual
     }
     public String getYearEventForDay(JewishDate d)
     {
-        return holydays_str[current_year_events[d.dayInYear()]];
+        return events_str[current_year_events[d.dayInYear()]];
+    }
+    public short getYearEventTypeForDay(JewishDate d)
+    {
+        return events_type[current_year_events[d.dayInYear()]];
+    }
+    static public short getEventType(int event_id)
+    {
+        return events_type[event_id];
     }
     public byte [] getYearEvents()
     {
@@ -221,7 +300,7 @@ public class YDateAnnual
     static byte [][][] annual_events = new byte [2][JewishDate.N_YEAR_TYPES][];//[diaspora][year_type][day_in_year]
     public static String getEventForDay(JewishDate d,boolean diaspora)
     {
-        return holydays_str[getEvents(d, diaspora)[d.dayInYear()]];
+        return events_str[getEvents(d, diaspora)[d.dayInYear()]];
     }
     public static byte [] getEvents(JewishDate d,boolean diaspora)
     {

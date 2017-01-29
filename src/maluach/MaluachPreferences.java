@@ -40,12 +40,11 @@ public class MaluachPreferences
 
     static public void initialise(String db)
     {
-        //timezone = java.util.TimeZone.getDefault().getRawOffset() / (60 * 1000 * 60);
         try
         {
 
             rs = RecordStore.openRecordStore(db, true);
-            if (rs.getNumRecords() == 1)
+            if (rs.getNumRecords() >= 1)
             {
                 setFromRecord();
                 return;
@@ -58,7 +57,6 @@ public class MaluachPreferences
         {
         }
         setDefaultValues();
-        return;
 
     }
     static public boolean HebrewInteface()
@@ -108,7 +106,6 @@ public class MaluachPreferences
             DataOutputStream dos = new DataOutputStream(bos);
             dos.writeDouble(latitude);
             dos.writeDouble(longitude);
-            //dos.writeFloat(timezone);
             dos.writeShort(knisatshabat);
             dos.writeUTF(city);
             dos.writeByte(textv_bigfont);

@@ -73,6 +73,34 @@ public class CalendarViewer extends DateShowers implements ScreenView
     private int hd_offset, hd_month_size;
     private boolean clearcursor = false;
 
+    private static final int getColorForEvent(int type, boolean rosh_hodesh)
+    {
+        if (type==0)
+        {
+             if (rosh_hodesh)
+                return COLOR_CELL_MONTH;
+             return COLOR_CELL;
+        }
+        int c=COLOR_CELL_HOLIDAY;
+        if (rosh_hodesh)
+            c^=COLOR_CELL-COLOR_CELL_MONTH;
+        if ((type & YDateAnnual.EV_TZOM) == YDateAnnual.EV_TZOM)
+            c^=0x002000;
+        if ((type & YDateAnnual.EV_NATIONAL) ==YDateAnnual.EV_NATIONAL)
+            c^=0x400040;
+        if ((type & YDateAnnual.EV_MEMORIAL) ==YDateAnnual.EV_MEMORIAL)
+            c^=0x041230;
+        if ((type & YDateAnnual.EV_GOOD_DAYS) ==YDateAnnual.EV_GOOD_DAYS)
+            c^=0x080004;
+        if ((type & YDateAnnual.EV_MIRACLE) ==YDateAnnual.EV_MIRACLE)
+            c^=0x042008;
+        if ((type & YDateAnnual.EV_REGALIM) ==YDateAnnual.EV_REGALIM)
+            c^=0x016002;
+        if ((type & YDateAnnual.EV_YOM_TOV) ==YDateAnnual.EV_YOM_TOV)
+            c^=0x804200;
+        
+        return c;
+    }
     private void setCursorXY(Cursor c)
     {
         c.x = (short) (7 - m_dateCursor.hd.dayInWeek());
@@ -165,8 +193,8 @@ public class CalendarViewer extends DateShowers implements ScreenView
         }
 
 
-        byte[] holydays = m_dateCursor.events().getYearEvents();
-        int holyday_offset=m_dateCursor.hd.dayInYear()-m_dateCursor.hd.dayInMonth()+1;
+        byte[] events = m_dateCursor.events().getYearEvents();
+        int events_offset=m_dateCursor.hd.dayInYear()-m_dateCursor.hd.dayInMonth()+1;
         g.setColor(COLOR_BACKGROUND);
         g.fillRect(0, 0, getWidth(), getHeight());
         g.setColor(55, 130, 180);
@@ -238,19 +266,10 @@ public class CalendarViewer extends DateShowers implements ScreenView
 
                 if (cellid >= 0 && cellid < hd_month_size)
                 {
-                    if (holydays[cellid+holyday_offset] != 0)
-                    {
-                        g.setColor(COLOR_CELL_HOLIDAY);
-                    }
-                    else
-                    {
-                        if (cellid==0 || cellid ==29)//rosh hodesh
-                        {
-                            g.setColor(COLOR_CELL_MONTH);
-                        }
-                        else
-                            g.setColor(COLOR_CELL);
-                    }
+                    
+                    int type=YDateAnnual.getEventType(events[cellid+events_offset]);
+                    g.setColor(getColorForEvent(type,(cellid==0 || cellid ==29)));
+                    
                     g.fillRect(x + 1, y + 1, m_cellWidth - 1, m_cellHeight - 1);
                     if (same_month && (cellid + 1 == s_dateToday.hd.dayInMonth()))
                     {

@@ -8,7 +8,7 @@ import javax.microedition.lcdui.*;
 import javax.microedition.lcdui.Graphics;
 import maluach.YDate.*;
 
-public class DateSelector extends DateShowers implements DisplayBack, DisplaySelect,ScreenView,CommandCheck
+public class DateSelector extends DateShowers implements DisplayBack, DisplaySelect,ScreenView,CommandCheck,IntSelect.ValueListen
 {
 
     private static final int COLOR_BACKGROUND = 0xffffff;
@@ -20,8 +20,15 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
     //private static final int COLOR_SELECTED_TEXT = 0xff6600;
     private static final int COLOR_TITLE_TEXT = 0xffffff;
     private static final int COLOR_TITLE_CELL = 0x1f608e;
-    private static final int SPACE = 3;
+    private static final int BAR_SPACE = 3;
+    private static final int FONT_SPACE_TOP = 1;
+    private static final int FONT_SPACE_BOTTOM = 1;
     private static final int TOUCH_SENSITIVITY = 3; //the bigger the less sensitive
+    private static final int LINE_DATE_TYPE = 0;
+    private static final int LINE_YEAR = 1;
+    private static final int LINE_MONTH = 2;
+    private static final int LINE_DAY = 3;
+    private static final int LINE_DAY_DIFF = 4;
     private byte active_line;
     private byte lines;
     //private Hdate m_dateCursor;
@@ -30,6 +37,7 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
     private boolean ppdrag = false;
     private boolean dragged;
     private boolean show_hebrew;
+    private IntSelect.IntValue val_select;
     final private String[] fields =
     {
         "סוג תאריך", "שנה", "חודש", "יום", "הפרש ימים"
@@ -50,33 +58,20 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
     int linespacing;
     boolean gregorian;
     boolean repainted;
-    byte keyboardkey;
-    int keyboardnum;
     byte onlycursor;///stores changes in the cursor for effective repaint
-    byte keyboardmove;//for repaint
-    boolean clearkeyboard;
-    boolean keyboardpressed;
-    int keyboardCellw;
-    final private char[] keyboardKeys =
-    {
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '×', '»'
-    };
+
 
     private DateSelector()
     {
         super();
         show_hebrew=MaluachPreferences.HebrewInteface();
-        clearkeyboard = false;
         onlycursor = -1;
-        keyboardmove = -1;
-        keyboardkey = -1;
         repainted = false;
         gregorian = false;
         m_dateCursor = YDate.getNow();
         this.setFullScreenMode(false);
         active_line = 0;
         lines = 5;
-        keyboardCellw = (getWidth() - keyboardKeys.length - 2) / keyboardKeys.length;
     }
 
     public void SetBeginingCursor(YDate cursor)
@@ -96,82 +91,15 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
         return m_dateCursor;
     }
 
-    private void keyboardpress(byte key)
-    {
-        if (key != keyboardkey)
-        {
-            keyboardmove = keyboardkey;
-            keyboardkey = key;
-        }
-        keyboardpress();
-    }
-
-    private void keyboardpress()
-    {
-        keyboardpressed = true;
-        if (keyboardkey == 11)//undo
-        {
-            if (keyboardnum == 0)
-            {
-                keyboardkey = -1;
-                keyboardmove = -1;
-                repainted = true;
-                repaint();
-                return;
-            }
-            keyboardnum /= 10;
-        }
-        else if (keyboardkey == 12)//ok
-        {
-            if (active_line == 4)
-            {
-                m_dateCursor.setByDays(keyboardnum + last_day_count);
-            }
-            else if (gregorian)
-            {
-                int month=m_dateCursor.gd.month();
-                int dayinmonth=m_dateCursor.gd.dayInMonth();
-                m_dateCursor.setByGregorianYearMonthDay(keyboardnum,month,dayinmonth);
-            }
-            else
-            {
-                int month_id=m_dateCursor.hd.monthID();
-                int dayinmonth=m_dateCursor.hd.dayInMonth();
-                m_dateCursor.setByHebrewYearMonthIdDay(keyboardnum,month_id,dayinmonth);
-            }
-            keyboardkey = -1;
-            keyboardmove = -1;
-        }
-        else if (keyboardkey == 10)//minus
-        {
-            keyboardnum *= -1;
-        }
-        else
-        {
-            if (Math.abs(keyboardnum) < 10000000)
-            {
-                if (keyboardnum < 0)
-                {
-                    keyboardnum = keyboardnum * 10 - keyboardkey;
-                }
-                else
-                {
-                    keyboardnum = keyboardnum * 10 + keyboardkey;
-                }
-            }
-        }
-        repainted = true;
-        repaint();
-    }
-
     private void drawline(Graphics g, byte line, int yoff, boolean stop)
     {
         g.setColor(COLOR_TITLE_TEXT);
         String lstr;
         int xoff;
+        yoff+=FONT_SPACE_TOP;
         switch (line)
         {
-            case 0:
+            case LINE_DATE_TYPE:
                 if (gregorian)
                 {
                     lstr = "לועזי";
@@ -189,13 +117,8 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                 {
                     yoff += linespacing;
                 }
-            case 1:
+            case LINE_YEAR:
                 xoff = (getWidth() - field_width[1]) / 2;
-                if (active_line == 1 && keyboardkey != -1)
-                {
-                    lstr = "" + keyboardnum;
-                }
-                else
                 {
                     if (gregorian)
                     {
@@ -220,7 +143,7 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                 {
                     yoff += linespacing;
                 }
-            case 2:
+            case LINE_MONTH:
                 if (gregorian)
                 {
                     lstr = "" + m_dateCursor.gd.month();
@@ -247,7 +170,7 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                 {
                     yoff += linespacing;
                 }
-            case 3:
+            case LINE_DAY:
                 xoff = (getWidth() - field_width[3]) / 2;
                 if (gregorian)
                 {
@@ -268,12 +191,7 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                 {
                     yoff += linespacing;
                 }
-            case 4:
-                if (active_line == 4 && keyboardkey != -1)
-                {
-                    lstr = Integer.toString(keyboardnum);
-                }
-                else
+            case LINE_DAY_DIFF:
                 {
                     lstr = Integer.toString(m_dateCursor.gd.daysSinceBeginning()- last_day_count);
                 }
@@ -296,7 +214,7 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
             int boxw = field_width[line];
             g.fillRect(getWidth() - boxw - 2, yoff + 1, boxw, fonth);
             g.setColor(COLOR_TITLE_TEXT);
-            g.drawString(fields[line], getWidth() - 4, yoff + 1, Graphics.TOP | Graphics.RIGHT);
+            g.drawString(fields[line], getWidth() - 4, yoff + 1 + FONT_SPACE_TOP, Graphics.TOP | Graphics.RIGHT);
         }
         //
         boolean split = (gregorian) ? gregsplit[line] : hebsplit[line];
@@ -329,9 +247,8 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
     {
         if (!repainted)
         {
-            fonth = g.getFont().getBaselinePosition() + SPACE;
-            linespacing = fonth + SPACE;
-            keyboardkey = -1;
+            fonth = g.getFont().getHeight()+ FONT_SPACE_TOP+FONT_SPACE_BOTTOM;
+            linespacing = fonth + BAR_SPACE;
             g.setColor(COLOR_BACKGROUND);
             g.fillRect(0, 0, getWidth(), getHeight());
         }
@@ -344,7 +261,7 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
             drawline(g, active_line, 2 + linespacing * active_line, true);
             onlycursor = -1;
         }
-        else if (keyboardkey == -1)
+        else
         {
             yoff = 1;
             byte i;
@@ -355,68 +272,6 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
             }
             drawline(g, (byte) 0, 2, false);
         }
-        yoff = 2 + linespacing * lines;
-
-        //keyboard stuff
-        
-        //TODO... replace keyboard with IntSelect
-        if (keyboardkey != -1)
-        {
-
-            byte ikey;
-
-            int xoff = 1;
-            if (keyboardpressed)
-            {
-                paintbox(g, active_line, 1 + linespacing * active_line);
-                drawline(g, active_line, 2 + linespacing * active_line, true);
-                keyboardpressed = false;
-            }
-            if (keyboardmove != -1)
-            {
-                int temp;
-                g.setColor(COLOR_CELL_INTEREST);
-                temp = xoff + (keyboardCellw + 1) * keyboardmove;
-                g.fillRect(temp, yoff, keyboardCellw, fonth);
-                g.setColor(COLOR_TITLE_TEXT);
-                g.drawChar(keyboardKeys[keyboardmove], temp + keyboardCellw / 2, yoff, Graphics.TOP | Graphics.HCENTER);
-                g.setColor(COLOR_CELL_SELECTED);
-                temp = xoff + (keyboardCellw + 1) * keyboardkey;
-                g.fillRect(temp, yoff, keyboardCellw, fonth);
-                g.setColor(COLOR_TITLE_TEXT);
-                g.drawChar(keyboardKeys[keyboardkey], temp + keyboardCellw / 2, yoff, Graphics.TOP | Graphics.HCENTER);
-                keyboardmove = -1;
-            }
-            else
-            {
-                g.setColor(COLOR_CELL_INTEREST);
-                for (ikey = 0; ikey < keyboardKeys.length; ikey++)
-                {
-                    if (ikey == keyboardkey)
-                    {
-                        g.setColor(COLOR_CELL_SELECTED);
-                        g.fillRect(xoff, yoff, keyboardCellw, fonth);
-                    }
-                    else
-                    {
-                        g.setColor(COLOR_CELL_INTEREST);
-                        g.fillRect(xoff, yoff, keyboardCellw, fonth);
-                    }
-                    g.setColor(COLOR_TITLE_TEXT);
-                    g.drawChar(keyboardKeys[ikey], xoff + keyboardCellw / 2, yoff, Graphics.TOP | Graphics.HCENTER);
-                    xoff += keyboardCellw + 1;
-                }
-
-            }
-            clearkeyboard = true;
-
-        }
-        else if (clearkeyboard)
-        {
-            g.setColor(COLOR_BACKGROUND);
-            g.fillRect(0, yoff, getWidth(), fonth);
-            clearkeyboard = false;
-        }
         // end of function, we need to reset this
         repainted = false;
 
@@ -426,10 +281,10 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
     {
         switch (active_line)
         {
-            case 0:
+            case LINE_DATE_TYPE:
                 gregorian = !gregorian;
                 break;
-            case 1:
+            case LINE_YEAR:
                 if (gregorian)
                 {
                     m_dateCursor.setByGregorianYearMonthDay(m_dateCursor.gd.year()+dir,m_dateCursor.gd.month(),m_dateCursor.gd.dayInMonth());
@@ -439,7 +294,7 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                     m_dateCursor.setByHebrewYearMonthIdDay(m_dateCursor.hd.year()+dir,m_dateCursor.hd.monthID(),m_dateCursor.hd.dayInMonth());
                 }
                 break;
-            case 2:
+            case LINE_MONTH:
                 if (gregorian)
                 {
                     int month=m_dateCursor.gd.month();
@@ -463,7 +318,7 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                     m_dateCursor.setByHebrewYearMonthIdDay(m_dateCursor.hd.year(),monthID,m_dateCursor.hd.dayInMonth());
                 }
                 break;
-            case 3:
+            case LINE_DAY:
                 if (gregorian)
                 {
                     int dayInMonth=m_dateCursor.gd.dayInMonth();
@@ -490,44 +345,83 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                 }
 
                 break;
-            case 4:
+            case LINE_DAY_DIFF:
                 m_dateCursor.seekBy(dir);
                 break;
 
         }
     }
-
+    
+    public void ValueChanged(int value)
+    {
+        if (active_line == LINE_DAY_DIFF)
+        {
+            m_dateCursor.setByDays(value + last_day_count);
+        }
+        else if (active_line == LINE_YEAR)
+        {
+            if (gregorian)
+            {
+                int month=m_dateCursor.gd.month();
+                int dayinmonth=m_dateCursor.gd.dayInMonth();
+                m_dateCursor.setByGregorianYearMonthDay(value,month,dayinmonth);
+            }
+            else
+            {
+                int month_id=m_dateCursor.hd.monthID();
+                int dayinmonth=m_dateCursor.hd.dayInMonth();
+                m_dateCursor.setByHebrewYearMonthIdDay(value,month_id,dayinmonth);
+            }
+        }
+    }
+    int getSelectedField()
+    {
+        switch(active_line)
+        { 
+            case LINE_YEAR:
+                if (gregorian)
+                    return m_dateCursor.gd.year();
+                return m_dateCursor.hd.year();
+            case LINE_MONTH:
+                if (gregorian)
+                    return m_dateCursor.gd.month();
+                return m_dateCursor.hd.monthInYear();
+            case LINE_DAY:
+                if (gregorian)
+                    return m_dateCursor.gd.dayInMonth();
+                return m_dateCursor.hd.dayInMonth();
+            case LINE_DAY_DIFF:
+                return m_dateCursor.gd.daysSinceBeginning()- last_day_count;
+            default:
+                return 0;
+        }
+        
+    }
+    private void openIntSelect(int val)
+    {
+        val_select=new IntSelect.IntValue(val,this);
+        maluach.getInstance().PushScreen((Displayable)new IntSelect((active_line==LINE_YEAR)?"שנה":"הפרש ימים",(active_line==LINE_YEAR)?5:9,val_select));
+    }
     final public void keyPressed(int realkeyCode)
     {
 
         if (realkeyCode >= KEY_NUM0 && realkeyCode <= KEY_NUM9)
         {
-            if (keyboardkey == -1)
+            if (active_line == LINE_YEAR || active_line == LINE_DAY_DIFF)
             {
-                keyboardnum = 0;
-            }
-            if (active_line == 1 || active_line == 4)
-            {
-                keyboardpress((byte) (realkeyCode - KEY_NUM0));
+                openIntSelect(realkeyCode-KEY_NUM0);
             }
             return;
         }
         if (realkeyCode == KEY_POUND)
         {
-            if (keyboardkey != -1)
-            {
-                keyboardpress((byte) 12);
-            }
+            openIntSelect(0);
 
             return;
         }
         if (realkeyCode == KEY_STAR)
         {
-            if (keyboardkey != -1)
-            {
-                keyboardpress((byte) 10);
-            }
-            return;
+            openIntSelect(getSelectedField());
         }
 
         int keyCode = getGameAction(realkeyCode);
@@ -544,7 +438,6 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                 onlycursor = active_line;
                 active_line++;
             }
-            keyboardkey = -1;
             active_line = (byte) ((active_line + lines) % lines);
             repainted = true;
             repaint();
@@ -561,38 +454,14 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
             {
                 dir = 1;
             }
-            if (keyboardkey != -1)
-            {
-                keyboardmove = keyboardkey;
-                keyboardkey += dir;
-                if (keyboardkey == keyboardKeys.length)
-                {
-                    keyboardkey = 0;
-                }
-                else if (keyboardkey == -1)
-                {
-                    keyboardkey = (byte) (keyboardKeys.length - 1);
-                }
-
-            }
-            else
-            {
-                changefield(dir);
-            }
+            changefield(dir);
             repainted = true;
             repaint();
             return;
         }
         if (keyCode == FIRE)
         {
-            if (keyboardkey == -1)
-            {
-                firepress();
-            }
-            else
-            {
-                keyboardpress();
-            }
+            firepress();
             return;
 
         }
@@ -614,42 +483,12 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
             {
                 dir = 1;
             }
-            if (keyboardkey == -1)
-            {
-                changefield(dir);
-            }
+            changefield(dir);
             repainted = true;
             repaint();
-            return;
         }
     }
 
-    private boolean keyboardOn()
-    {
-        return (keyboardkey != -1);
-    }
-
-    public boolean keyboardselectpressed()
-    {
-        if (keyboardOn())
-        {
-            keyboardpress();
-            return true;
-        }
-        return false;
-    }
-
-    public boolean keyboardbackpressed()
-    {
-        if (keyboardOn())
-        {
-
-            keyboardpress((byte) 11);
-
-            return true;
-        }
-        return false;
-    }
     private void showInfo()
     {
         String lstr;
@@ -692,10 +531,7 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                 break;
             case 1:
             case 4:
-                keyboardkey = 0;
-                keyboardnum = 0;
-                repainted = true;
-                repaint();
+                openIntSelect(getSelectedField());
                 break;
         }
     }
@@ -703,26 +539,21 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
     protected void pointerPressed(int x, int y)
     {
         dragged = false;
-        if (keyboardkey == -1)
+        int mody = (y - 1) / linespacing;
+        if (mody >= 0 && mody < lines)
         {
-            int mody = (y - 1) / linespacing;
-            if (mody >= 0 && mody < lines)
+            if (active_line != (byte) mody)
             {
-                if (active_line != (byte) mody)
-                {
 
-                    onlycursor = active_line;
-                    active_line = (byte) mody;
-                    repainted = true;
-                    repaint();
-                }
-                ppdrag = true;
-                ppx = x;
-                ppy = y;
+                onlycursor = active_line;
+                active_line = (byte) mody;
+                repainted = true;
+                repaint();
             }
+            ppdrag = true;
+            ppx = x;
+            ppy = y;
         }
-
-
     }
 
     protected void pointerDragged(int x, int y)
@@ -758,8 +589,6 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
                 repainted = true;
                 repaint();
             }
-
-
         }
     }
 
@@ -771,41 +600,22 @@ public class DateSelector extends DateShowers implements DisplayBack, DisplaySel
             return;
         }
 
-        if (keyboardkey == -1)
+        int mody = (y - 1) / linespacing;
+        if (active_line == (byte) mody)
         {
-            int mody = (y - 1) / linespacing;
-            if (active_line == (byte) mody)
-            {
-                firepress();
-            }
+            firepress();
+        }
 
-        }
-        else
-        {
-            if (y <= 2 + linespacing * (lines + 1) && y > linespacing * (lines))
-            {
-                x -= 1;
-                x /= (keyboardCellw + 1);
-                if (x >= 0 && x < keyboardKeys.length)
-                {
-                    keyboardpress((byte) x);
-                }
-            }
-        }
     }
 
     public boolean Back()
     {
-        return !keyboardbackpressed();
-
+        return true;
     }
 
     public void Select()
     {
-        if (!keyboardselectpressed())
-        {
-            CalendarViewer.getInstance().jumpTo(GetDate());
-        }
+        CalendarViewer.getInstance().jumpTo(GetDate());
     }
     private Command c_setCursor;
     private Command c_showInfo;

@@ -565,10 +565,11 @@ public class YDate
         }
         public String MazalName(boolean Heb)
         {
+            int mazal=MazalType();
             if (Heb)
-                return "מזל "+zodiac_names[0][MazalType()];
+                return "מזל "+zodiac_names[0][mazal] +" ("+four_elements_names[0][mazal%4]+")";
             else
-                return "Zodiac. "+zodiac_names[1][MazalType()];
+                return "Zodiac. "+zodiac_names[1][mazal] +" ("+four_elements_names[1][mazal%4]+")";
         }
         public String TkufaName(boolean Heb)
         {
