@@ -223,10 +223,14 @@ public abstract class DateShowers extends Canvas implements CommandCheck
     }
     protected String parasha()
     {
-        String lstr=Parasha.GetParashaFor(m_dateCursor.hd);
+        String il_parasha=Parasha.GetParashaFor(m_dateCursor.hd,false);
+        String lstr=il_parasha;
         String shabat_str=Parasha.parshiot4(m_dateCursor);
         if (shabat_str.length()>0)
             lstr="שבת "+shabat_str+", "+lstr;
+        String diasp=Parasha.GetParashaFor(m_dateCursor.hd,true);
+        if (diasp.length()>0 && !il_parasha.equals(diasp))
+            lstr+="\nבחו\"ל "+diasp;
         return lstr;
     }
     protected String SfiratOmer()
