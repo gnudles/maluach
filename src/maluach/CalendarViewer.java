@@ -163,9 +163,12 @@ public class CalendarViewer extends DateShowers implements ScreenView
         boolean heb=MaluachPreferences.HebrewInteface();
         int hy = m_tableHeight + m_tableY, gy;
         g.setColor(COLOR_TEXT_DATE_GRE);
-        String holyday = m_dateCursor.events().getYearEventForDay(m_dateCursor.hd);
-        if (holyday.length()>0)
-            g.drawString(holyday, getWidth() / 2, hy + 2 * m_tableFont.getHeight(), Graphics.TOP | Graphics.HCENTER);
+        String il_event = m_dateCursor.events().getYearEventForDay(m_dateCursor.hd);
+        if (il_event.length()>0)
+            g.drawString(il_event, getWidth() / 2, hy + 2 * m_tableFont.getHeight(), Graphics.TOP | Graphics.HCENTER);
+        String diasp_event = YDateAnnual.getEventForDay(m_dateCursor.hd,true);
+        if (!diasp_event.equals(il_event) && diasp_event.length()>0)
+            g.drawString("áçå\"ì "+diasp_event, getWidth() / 2, hy + 3 * m_tableFont.getHeight(), Graphics.TOP | Graphics.HCENTER);
         gy = hy + m_tableFont.getHeight();
 
         g.setColor(COLOR_TEXT_DATE_HEB);
@@ -183,7 +186,7 @@ public class CalendarViewer extends DateShowers implements ScreenView
         {
             g.setColor(COLOR_BACKGROUND);
             drawcursor(g);
-            g.fillRect(0, m_tableHeight + m_tableY, getWidth(), m_tableFont.getHeight() * 3);
+            g.fillRect(0, m_tableHeight + m_tableY, getWidth(), m_tableFont.getHeight() * 4);
             cursor.set(newCursor);
             g.setColor(COLOR_CURSOR);
             drawcursor(g);

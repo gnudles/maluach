@@ -304,17 +304,13 @@ public class YDateAnnual
     }
     public static byte [] getEvents(JewishDate d,boolean diaspora)
     {
-        
         int year_ld_t= JewishDate.ld_year_type(d.yearLength(),d.yearFirstDay()%7+1);
         return initialize_year(diaspora,year_ld_t,d.yearLength(),d.yearFirstDay());
-        
     }
     public static byte [] getEvents(int year, int year_length, int year_first_day,boolean diaspora)
     {
-        
         int year_ld_t= JewishDate.ld_year_type(year_length,year_first_day%7+1);
         return initialize_year(diaspora,year_ld_t,year_length,year_first_day);
-        
     }
     private static void expandDB(int year_length,int year_first_day,final byte [][] evdb, byte [] year_events)
     {
