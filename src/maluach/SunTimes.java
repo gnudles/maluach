@@ -1,10 +1,7 @@
-/**
- *
- * @author orr
- */
+//using noaa calculation
 
 package maluach;
-//using noaa calculation
+
 public class SunTimes
 {
 

@@ -1,7 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* some parts or all of the code was taken from libhdate which is licensed under GPL3
  */
+
 package maluach;
 
 import java.io.DataInputStream;
@@ -9,10 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import maluach.YDate.JewishDate;
 
-/**
- *
- * @author orr
- */
+
 public class Parasha
 {
 

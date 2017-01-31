@@ -1,15 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/* some parts or all of the code was taken from libhdate which is licensed under GPL3
  */
 package maluach;
 
 
-/**
- *
- * @author orr
- */
+
 public class Format
 {
     public static String Min2Str(double min)

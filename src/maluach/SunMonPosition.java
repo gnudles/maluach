@@ -1,11 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package maluach;
-
-
 /**
  * 
  * Copyright (C) 2010-2012, Helmut Lehmeyer <helmut.lehmeyer@gmail.com>
@@ -39,6 +31,7 @@ package maluach;
  * @version 0.1
  */
 
+package maluach;
 
 /**
  *

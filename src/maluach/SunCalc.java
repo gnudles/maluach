@@ -1,7 +1,4 @@
-/**
- *
- * @author orr
- */
+//using noaa calculation
 package maluach;
 
 import java.util.Calendar;
@@ -40,16 +37,6 @@ public class SunCalc
         setmin_16=calcSunUTC(true,106.01);
         setmin_8=calcSunUTC(true,98.5);
         risemin_11=calcSunUTC(false,101.5);
-        
-
-        /*
-        noonmin += timezone.getOffset(d);
-        risemin += timezone;
-        setmin += timezone;
-        risemin_11 += timezone;
-        risemin_16 += timezone;
-        setmin_16 += timezone;
-        */
 
     }
     /*

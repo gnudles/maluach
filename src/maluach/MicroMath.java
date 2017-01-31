@@ -1,14 +1,17 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+* ====================================================
+* Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+*
+* Developed at SunSoft, a Sun Microsystems, Inc. business.
+* Permission to use, copy, modify, and distribute this
+* software is freely granted, provided that this notice 
+* is preserved.
+* ====================================================
+*
+*/
 package maluach;
 
-/**
- *
- * @author orr
- */
+
 public class MicroMath
 {
     
@@ -26,17 +29,7 @@ public class MicroMath
         }
         return (long)(0.5+x);
     }
-    /*
-     * ====================================================
-     * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
-     *
-     * Developed at SunSoft, a Sun Microsystems, Inc. business.
-     * Permission to use, copy, modify, and distribute this
-     * software is freely granted, provided that this notice 
-     * is preserved.
-     * ====================================================
-     *
-     */
+    
 
     /* atan(x)
      * Method

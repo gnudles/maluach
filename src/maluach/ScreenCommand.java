@@ -1,6 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* This is free and unencumbered software released into the public domain.
  */
 
 package maluach;
@@ -9,10 +7,7 @@ package maluach;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.Displayable;
 
-/**
- *
- * @author orr
- */
+
 public class ScreenCommand extends Command {
     public ScreenCommand(ScreenView a_screen, Object a_param,String label ,int priority)
     {

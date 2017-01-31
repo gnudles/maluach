@@ -1,6 +1,4 @@
-/**
- *
- * @author orr
+/* This is free and unencumbered software released into the public domain.
  */
 package maluach;
 
@@ -18,17 +16,16 @@ public abstract class DateShowers extends Canvas implements CommandCheck
     protected static final Command c_jumpToday = new Command("עבור להיום", Command.SCREEN, 2);
     protected static final Command c_showDayTimes = new Command("הצג זמנים", Command.SCREEN, 3);
     protected static final Command c_showMeida=new Command("מידע",Command.SCREEN,1);
-    //protected static final Command c_showParasha=new Command("פרשת שבוע",Command.SCREEN,0);
+    protected static final Command c_showLimud=new Command("לימוד יומי",Command.SCREEN,3);
     protected static final Command c_showMolad=new Command("מולד הלבנה",Command.SCREEN,5);
-    //protected static final Command c_showOmer=new Command("ספירת העמר",Command.SCREEN,6);
+
     protected DateShowers()
     {
         addCommand(c_jumpToday);
         addCommand(c_showDayTimes);
         addCommand(c_showMeida);
-        //addCommand(c_showParasha);
+        addCommand(c_showLimud);
         addCommand(c_showMolad);
-        //addCommand(c_showOmer);
     }
 
     protected static YDate s_dateToday = YDate.getNow();
@@ -69,11 +66,11 @@ public abstract class DateShowers extends Canvas implements CommandCheck
             showMolad();
             return true;
         }
-        /*if (c==c_showOmer)
+        if (c==c_showLimud)
         {
-            showOmer();
+            showLimud();
             return true;
-        }*/
+        }
         return false;
     }
     protected void showInformation()
@@ -117,6 +114,11 @@ public abstract class DateShowers extends Canvas implements CommandCheck
         String lstr;
         lstr=m_dateCursor.hd.MoladString(new TzDstManager());
         maluach.showAlert("מולד הלבנה", lstr, AlertType.INFO);
+    }
+    
+    protected void showLimud()
+    {
+        maluach.showAlert("דף יומי", DailyLimud.getDafYomi(m_dateCursor.hd.daysSinceBeginning(), true), AlertType.INFO);
     }
     protected String parasha()
     {

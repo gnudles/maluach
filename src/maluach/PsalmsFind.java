@@ -1,7 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* This is free and unencumbered software released into the public domain.
  */
+
 package maluach;
 
 import java.io.ByteArrayOutputStream;
@@ -12,10 +11,6 @@ import list.LinkedList;
 import list.ListItem;
 import textviewer.ScriptedTextViewer;
 
-/**
- *
- * @author orr
- */
 public class PsalmsFind extends Form implements CommandCheck
 {
     private TextField tfkeyword;

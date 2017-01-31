@@ -1,16 +1,11 @@
+/* This is free and unencumbered software released into the public domain.
+ */
 package maluach;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 import javax.microedition.lcdui.*;
 import textviewer.ScriptedTextViewer;
-/**
- *
- * @author orr
- */
+
 public class Psalms extends List implements CommandCheck,ScreenView {
 
     final static short [] tikun_klali={16,32,41,42,59,77,90,105,137,150};

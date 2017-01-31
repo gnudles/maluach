@@ -1,16 +1,11 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* This is free and unencumbered software released into the public domain.
  */
 package maluach;
 
 import javax.microedition.lcdui.Form;
 import javax.microedition.lcdui.TextField;
 
-/**
- *
- * @author orr
- */
+
 public class TimesForm extends Form implements ScreenView
 {
     TextField ClockType;
@@ -50,7 +45,7 @@ public class TimesForm extends Form implements ScreenView
     }
     TimesForm()
     {
-        super("זמנים ל" +MaluachPreferences.GetCity());
+        super("");
         ClockType=new TextField("הפרש שעות",null,5,TextField.UNEDITABLE );
         ClockType.setLayout(TextField.LAYOUT_RIGHT);
         AlotHashahar=new TextField("עלות השחר",null,5,TextField.UNEDITABLE );
@@ -96,6 +91,7 @@ public class TimesForm extends Form implements ScreenView
 
     public void OnShow(Object param)
     {
+        setTitle("זמנים ל" +MaluachPreferences.GetCity());
         super.deleteAll();
         YDate dateCursor= (YDate)param;
         SunCalc sc = new SunCalc(SunMonPosition.calcJD(dateCursor.gd.dayInMonth(), dateCursor.gd.month(), dateCursor.gd.year()),
