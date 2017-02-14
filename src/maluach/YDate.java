@@ -119,10 +119,10 @@ public class YDate
                 {
                     int l, n, i, j;
                     l = days+ 68569 + JULIAN_DAY_OFFSET;
-                    n = (4 * l) / 146097;
-                    l = l - (146097 * n + 3) / 4;
+                    n = (4 * l) / DAYS_IN_400;
+                    l = l - (DAYS_IN_400 * n + 3) / 4;
                     i = (4000 * (l + 1)) / 1461001;	/* that's 1,461,001 */
-                    l = l - (1461 * i) / 4 + 31;
+                    l = l - (DAYS_IN_4 * i) / 4 + 31;
                     j = (80 * l) / 2447;
                     gd_day = l - (2447 * j) / 80;
                     l = j / 11;
@@ -134,12 +134,12 @@ public class YDate
                     days-=DAYS_OF_1600;
                     gd_year=1600+400*((days)/DAYS_IN_400);
                     days=days%DAYS_IN_400;
-                    int h=(days*4)/146097;
+                    int h=(days*4)/DAYS_IN_400;
                     if (h==0)
                     {
-                        h=(days*4)/1461;
+                        h=(days*4)/DAYS_IN_4;
                         gd_year+=h;
-                        days=days-(h*1461+3)/4;
+                        days=days-(h*DAYS_IN_4+3)/4;
                     }
                     else
                     {
@@ -206,6 +206,17 @@ public class YDate
         public int yearFirstDay()
         {
             return this.year_first_day;
+        }
+        public int monthFirstDay()
+        {
+            return year_first_day+day_in_year-day+1;
+        }
+        public int previousMonthLength()
+        {
+            if (this.month==1)//December is always 31 days
+                return 31;
+            int mo_year_t=year_length-365;
+            return months_days_offsets[mo_year_t][month-1]-months_days_offsets[mo_year_t][month-2];
         }
         public double JulianDay()
         {
@@ -587,7 +598,7 @@ public class YDate
         /**
          * find out how many days passed from the last sun blessing
          *
-         * @return number of days, modulu by 10227
+         * @return number of days, modulo by 10227
          */
         public int TkufotCycle()//when this method return 0, we need to do sun blessing in nissan.
         {
@@ -811,46 +822,57 @@ public class YDate
             this.month=m+1;
             this.day=days-months_days_offsets[mo_year_t][m]+1;
         }
-        
+
         /**
          * Return Hebrew year type based on size and first week day of year.
+         * p - pshuta  350 +
+         * m - meuberet 380 +
+         * h - hasera + 3
+         * k - kesidra + 4
+         * s - shlema (melea) + 5
          * year type | year length | Tishery 1 day of week
          * | 1       | 353         | 2  ph2
+         * | XXXXX   | 353         | 3  ph3 impossible
+         * | XXXXX   | 353         | 5  ph5 impossible
          * | 2       | 353         | 7  ph7
+         * | XXXXX   | 354         | 2  pk2 impossible
          * | 3       | 354         | 3  pk3
          * | 4       | 354         | 5  pk5
+         * | XXXXX   | 354         | 7  pk7 impossible
          * | 5       | 355         | 2  ps2
+         * | XXXXX   | 355         | 3  ps3 impossible
          * | 6       | 355         | 5  ps5
          * | 7       | 355         | 7  ps7
          * | 8       | 383         | 2  mh2
+         * | XXXXX   | 383         | 3  mh3 impossible
          * | 9       | 383         | 5  mh5
          * |10       | 383         | 7  mh7
+         * | XXXXX   | 384         | 2  mk2 impossible
          * |11       | 384         | 3  mk3
+         * | XXXXX   | 384         | 5  mk5 impossible
+         * | XXXXX   | 384         | 7  mk7 impossible
          * |12       | 385         | 2  ms2
+         * | XXXXX   | 385         | 3  ms3 impossible
          * |13       | 385         | 5  ms5
          * |14       | 385         | 7  ms7
-         * 
+         *
          * @param size_of_year Length of year in days
          * @param year_first_dw First week day of year (1..7)
          * @return A number for year type (1..14)
          */
         static int ld_year_type (int size_of_year, int year_first_dw)
         {
-                /* Only 14 combinations of size and week day are posible */
-                final int[] year_types =
-                        {1, 0, 0, 2, 0, 3, 4, 0, 5, 0, 6, 7,
-                        8, 0, 9, 10, 0, 11, 0, 0, 12, 0, 13, 14};
+            final int[] year_type_map =
+                    {1, 0, 0, 2, 0, 3, 4, 0, 5, 0, 6, 7,
+                            8, 0, 9, 10, 0, 11, 0, 0, 12, 0, 13, 14};
 
-                int offset;
-
-                /* convert size and first day to 1..24 number */
-                /* 2,3,5,7 -> 1,2,3,4 */
-                /* 353, 354, 355, 383, 384, 385 -> 0, 1, 2, 3, 4, 5 */
-                offset = (year_first_dw + 1) / 2;
-                offset = offset + 4 * ((size_of_year % 10 - 3) + (size_of_year / 10 - 35));
-
-                /* some combinations are imposible */
-                return year_types[offset - 1];
+            /* the year cannot start at days 1 4 6, so we are left with 2,3,5,7.
+               and the possible lengths are 353 354 355 383 384 385...
+               so we have 24 combinations, but only 14 are possible. (see table above)
+            */
+            /* 2,3,5,7 -> 0,1,2,3 */
+            int offset = (year_first_dw - 1) / 2;
+            return year_type_map[4 * mo_year_type(size_of_year)+offset];
         }
         int getYearTypeWeekDayLength()
         {
@@ -866,7 +888,8 @@ public class YDate
         }
         private static int mo_year_type(int year_length)
         {
-            return ((year_length%10)-3)+3*(year_length>355?1:0); //0 hasera,1 kesidra,2 melea,3 meuberet hasera,4 meuberet kesidra,5 meuberet melea
+            //0 hasera,1 kesidra,2 melea,3 meuberet hasera,4 meuberet kesidra,5 meuberet melea
+            return ((year_length%10)-3)+(year_length-350)/10;
         }
         private static int calculateDayInYear(int year_length,int month,int day)//0..385
         {
@@ -965,6 +988,14 @@ public class YDate
                 ++days;
             }
             return days;
+        }
+        public static int calculateYearLength(int year)
+        {
+            return calculateYearFirstDay(year+1)-calculateYearFirstDay(year);
+        }
+        public static int calculateYearFirstDay(int year)
+        {
+            return days_until_year(year,parts_since_beginning(year));
         }
 
         public static int days_to_year(int days)
@@ -1109,7 +1140,7 @@ public class YDate
         Date d = new Date();
         return createFrom(d);
     }
-    public static int getNext(int diw,int days)
+    public static int getNext(int diw,int days) // return the upcoming diw (or today if it's that diw)
     {
         int diff=(diw-days%7+7)%7;
         return (days+diff);

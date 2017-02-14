@@ -89,7 +89,7 @@ public class CalendarViewer extends DateShowers implements ScreenView
         if ((type & YDateAnnual.EV_MEMORIAL) ==YDateAnnual.EV_MEMORIAL)
             c^=0x041230;
         if ((type & YDateAnnual.EV_GOOD_DAYS) ==YDateAnnual.EV_GOOD_DAYS)
-            c^=0x080004;
+            c^=0x880044;
         if ((type & YDateAnnual.EV_MIRACLE) ==YDateAnnual.EV_MIRACLE)
             c^=0x042008;
         if ((type & YDateAnnual.EV_REGALIM) ==YDateAnnual.EV_REGALIM)

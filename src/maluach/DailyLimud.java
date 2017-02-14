@@ -4,10 +4,7 @@ package maluach;
 
 import maluach.YDate.JewishDate;
 
-/**
- *
- * @author orr
- */
+
 public class DailyLimud
 {
 

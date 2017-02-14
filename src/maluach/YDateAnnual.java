@@ -22,7 +22,7 @@ public class YDateAnnual
         "שמיני עצרת",
         "שמחת תורה",
         "שמיני עצרת שמחת תורה",
-        "א' חנוכה",
+        "א' חנוכה",//14
         "ב' חנוכה",
         "ג' חנוכה",//16
         "ד' חנוכה",
@@ -59,6 +59,7 @@ public class YDateAnnual
         "יום המשפחה",
         "יום הזכרון ליצחק רבין",//49
         "שחרור בעל התניא ממאסר",//50
+        "יום שמחת כהן",//51
 
     };
 
@@ -128,6 +129,7 @@ public class YDateAnnual
         EV_NATIONAL,
         EV_NATIONAL|EV_MEMORIAL,//49
         EV_CHASIDIC,//50 - 19 kislev
+        EV_GOOD_DAYS,//51 - Simhat Cohen
 
     };
 
@@ -137,6 +139,7 @@ public class YDateAnnual
         {JewishDate.M_ID_TISHREI,1,1,2,1},//two days of rosh hashana
         {JewishDate.M_ID_TISHREI,3,3,1,1},//zom gdalia, dhia
         {JewishDate.M_ID_TISHREI,9,4,2,1},//yom kippur
+        {JewishDate.M_ID_TISHREI,11,51,1,0},//yom Simhat Cohen
         {JewishDate.M_ID_TISHREI,14,6,2,1},//sukkot
         {JewishDate.M_ID_TISHREI,16,9,5,0},//hol hamoed sukkot
         {JewishDate.M_ID_TISHREI,21,10,1,0},//hoshana raba
@@ -183,9 +186,14 @@ public class YDateAnnual
     private byte [] current_year_events;
     private boolean diaspora;
     private int year;
+    private int year_length;
     public int year()
     {
         return this.year;
+    }
+    public int yearLength()
+    {
+        return this.year_length;
     }
     public boolean diaspora()
     {
@@ -219,6 +227,7 @@ public class YDateAnnual
     public YDateAnnual(int year, int year_length, int year_first_day,boolean diaspora)
     {
         this.year=year;
+        this.year_length=year_length;
         this.diaspora=diaspora;
         int year_ld_t= JewishDate.ld_year_type(year_length,year_first_day%7+1);
         initialize_year(diaspora,year_ld_t,year_length,year_first_day);
@@ -301,7 +310,7 @@ public class YDateAnnual
         int year_ld_t= JewishDate.ld_year_type(d.yearLength(),d.yearFirstDay()%7+1);
         return initialize_year(diaspora,year_ld_t,d.yearLength(),d.yearFirstDay());
     }
-    public static byte [] getEvents(int year, int year_length, int year_first_day,boolean diaspora)
+    public static byte [] getEvents(int year_length, int year_first_day,boolean diaspora)
     {
         int year_ld_t= JewishDate.ld_year_type(year_length,year_first_day%7+1);
         return initialize_year(diaspora,year_ld_t,year_length,year_first_day);

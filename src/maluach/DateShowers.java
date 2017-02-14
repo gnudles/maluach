@@ -10,6 +10,7 @@ import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.pim.*;
+import maluach.YDate.JewishDate;
 
 public abstract class DateShowers extends Canvas implements CommandCheck
 {
@@ -92,6 +93,15 @@ public abstract class DateShowers extends Canvas implements CommandCheck
             if (m_dateCursor.hd.dayInMonth()>=23 && m_dateCursor.hd.dayInWeek()==7)
                 lstr+="מברכין החדש\n";
         }
+        if (m_dateCursor.hd.dayInMonth()==16 && m_dateCursor.hd.monthID()==JewishDate.M_ID_TISHREI &&
+            (m_dateCursor.hd.ShmitaOrdinal()-1)%7 == 0 )
+        {
+            lstr+="יום הקהל\n";
+        }
+        if (TorahReading.getShabbatBereshit(m_dateCursor.hd.yearLength(),m_dateCursor.hd.yearFirstDay())+15*7-4 == m_dateCursor.hd.daysSinceBeginning())
+        {
+            lstr+="סגולת פרשת המן שניים מקרא ואחד תרגום\n";
+        }
         lstr+="שנה "+m_dateCursor.hd.ShmitaTitle()+"\n";
         int day_tkufa=m_dateCursor.hd.dayInTkufa();
         int day_mazal=m_dateCursor.hd.dayInMazal();
@@ -122,14 +132,19 @@ public abstract class DateShowers extends Canvas implements CommandCheck
     }
     protected String parasha()
     {
-        String il_parasha=Parasha.GetParashaFor(m_dateCursor.hd,false);
-        String lstr=il_parasha;
-        String shabat_str=Parasha.parshiot4(m_dateCursor);
+        String il_parasha=TorahReading.GetSidra(m_dateCursor.hd,false);
+        String diasp=TorahReading.GetSidra(m_dateCursor.hd,true);
+        
+        String lstr="";
+        if ((diasp.length()==0 || !il_parasha.equals(diasp))&& il_parasha.length()>0)
+            lstr+="באה\"ק ";
+        lstr+=il_parasha;
+        String shabat_str=TorahReading.parshiot4(m_dateCursor);
         if (shabat_str.length()>0)
             lstr="שבת "+shabat_str+", "+lstr;
-        String diasp=Parasha.GetParashaFor(m_dateCursor.hd,true);
         if (diasp.length()>0 && !il_parasha.equals(diasp))
             lstr+="\nבחו\"ל "+diasp;
+        
         return lstr;
     }
     protected String SfiratOmer()
