@@ -11,8 +11,8 @@ public class SunCalc
     private double JD;
     YDate.TimeZoneProvider timezone;
     private double noonEqTime, noonSolarDec, firstHourAngle, noonmin, risemin, setmin;
-    private double risemin_16, setmin_16, setmin_8;
-    private double risemin_11;
+    private double risemin_16, setmin_16, setmin_8, setmin_6,setmin_4;
+    private double risemin_11,risemin_19;
 
     public SunCalc(double JD, double latitude, double longitude, YDate.TimeZoneProvider timezone)
     {
@@ -36,7 +36,10 @@ public class SunCalc
         risemin_16=calcSunUTC(false,106.01);
         setmin_16=calcSunUTC(true,106.01);
         setmin_8=calcSunUTC(true,98.5);
+        setmin_6=calcSunUTC(true,95.95);
+        //setmin_4=calcSunUTC(true,94.61);
         risemin_11=calcSunUTC(false,101.5);
+        risemin_19=calcSunUTC(false,109.75);
 
     }
     /*
@@ -69,6 +72,11 @@ public class SunCalc
     {  
         return risemin_16;
     }
+    public double getDawn90()// 90 minutes before the sunrise, 19.75 degrees
+    {  
+        return risemin_19;
+    }
+    
 
     public double getRecognize()// 50 minutes before the sunrise, 11.5 degrees
     {
@@ -94,9 +102,13 @@ public class SunCalc
         return (risemin-72)+4*((setmin +72) - (risemin-72))/12.0 ;
     }
 
-    public double getMinhaGdola()// half day-hour (shaot zmaniot) after the noon
+    public double getMinhaGdola2()// half day-hour (shaot zmaniot) after the noon
     {
         return noonmin + 1 * (setmin - noonmin) / 12.0;//
+    }
+    public double getMinhaGdola()// half hour after the noon
+    {
+        return noonmin + 30;
     }
 
     public double getMinhaKtana()// 3.5 day-hour (shaot zmaniot) after the noon
@@ -111,6 +123,10 @@ public class SunCalc
     public double getVisibleStars()// 8.5 degrees
     {
         return setmin_8;
+    }
+    public double getVisibleStarsGeonim()// 4.61 degrees
+    {
+        return setmin_6;
     }
     
     /*public double getVisibleStars()// 24 minutes zmaniot after the sunset

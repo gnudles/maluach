@@ -1,7 +1,6 @@
-/* some parts or all of the code was taken from libhdate which is licensed under GPL3
+/* This is free and unencumbered software released into the public domain.
  */
 package maluach;
-
 
 
 public class Format
@@ -28,77 +27,114 @@ public class Format
         }
         return stime;
     }
-    private static final String[][] digits =
+    private static String getc00String(int x)
     {
-        {
-            " ", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט"
-        },
-        {
-            "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ"
-        },
-        {
-            " ", "ק", "ר", "ש", "ת"
-        }
+        
+        char a=(char)('0'+x/10);
+        char b=(char)('0'+x%10);
+        return (":"+a)+b;
+    }
+    private static String get00String(int x)
+    {
+        
+        char a=(char)('0'+x/10);
+        char b=(char)('0'+x%10);
+        return (""+a)+b;
+    }
+    public static String GDateString(int y,int m,int d)
+    {
+        String sdate = get00String(d);
+        sdate += "."+get00String(m);
+        sdate += "."+get00String(y%100);
+        return sdate;
+    }
+    public static String TimeString(int h,int m)
+    {
+        String stime = get00String(h);
+        stime += getc00String(m);
+        return stime;
+    }
+    public static String TimeString(int h,int m,int s)
+    {
+        String stime = get00String(h);
+        stime += getc00String(m);
+        stime += getc00String(s);
+        return stime;
+    }
+    public static final String[] alphabeta =
+    {
+        " ", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט",
+        "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ",
+        "ק", "ר", "ש", "ת"
     };
-    public static String HebIntString(int n, boolean geresh)
+    
+    
+    public static String HebIntSubString(int n, boolean geresh,boolean gereshim)
     {
-        String hnum = "";
+        final int ONES=0;
+        final int TET=9;
+        final int TENS=9;
+        final int HUNDREDS=18;
 
-
-        boolean hundreds = false;
-        /* sanity checks */
-
-
-        if (n < 1 || n >= 10000)
+        if (n<1000 && n>=1)
         {
-            return hnum;
-        }
-        if (n >= 1000)
-        {
-            hnum = hnum + digits[0][n / 1000];
-            n %= 1000;
-            hnum = hnum + "'";
-            hundreds = true;
-        }
-        while (n >= 400)
-        {
-            hnum = hnum + digits[2][4];
-            n -= 400;
-        }
-        if (n >= 100)
-        {
-            hnum = hnum + digits[2][n / 100];
-            n %= 100;
-        }
-        if (n >= 10)
-        {
+            String strstrm="";
+            int a,t;
+            a=n/100;
+            n=n%100;
+            while (a>0)
+            {
+                t=Math.min(a, 4);
+                a-=t;
+                if (a==0 && n==0 && !strstrm.equals("") && gereshim)
+                    strstrm+="\"";
+                strstrm+=alphabeta[t+HUNDREDS];
+            }
+            
             if (n == 15 || n == 16)
             {
-                n -= 9;
+                n-=9;
+                strstrm+=alphabeta[TET];
             }
-            hnum = hnum + digits[1][n / 10];
-            n %= 10;
-        }
-        if (n > 0)
-        {
-            hnum = hnum + digits[0][n];
-        }
-        if (geresh)
-        {
-            int len = hnum.length();
-            if (hundreds)
+            a=n/10;
+            n=n%10;
+            if (a>0)
             {
-                len -= 2;
+                if (n==0 && !strstrm.equals("") && gereshim)
+                    strstrm+="\"";
+                strstrm+=alphabeta[TENS+a];
             }
-            if (len < 2)
+            
+            if (n>0)
             {
-                hnum += "'";
+                if (!strstrm.equals("") && gereshim)
+                    strstrm+="\"";
+                strstrm+=alphabeta[ONES+n];
             }
-            else
-            {
-                hnum = hnum.substring(0, hnum.length() - 1) + "\"" + hnum.substring(hnum.length() - 1, hnum.length());
-            }
+            if (strstrm.length()==1 && geresh)
+                strstrm+="\'";
+            return strstrm;
         }
-        return hnum;
+        else
+            return String.valueOf(n);
+
     }
+    public static String HebIntString(int n, boolean pg) //pg - prat gadol
+    {
+        boolean geresh,gereshim;
+        int a;
+        String out="";
+        a=n/1000;
+        n=n%1000;
+        if ( a>0 && pg )
+        {
+            out=HebIntSubString(a,true,true);
+            if (n==0 || a>10)
+                out+=" אלפים ";
+        }
+        out+=HebIntSubString(n,true,true);
+        
+        return out;
+    }
+
 }

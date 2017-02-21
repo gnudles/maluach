@@ -350,20 +350,20 @@ public class YDate
         static final int TKUFA = 91 * DAY + 7 * HOUR + 540;
         static final int MAZAL = 30 * DAY + 10 * HOUR + 540;
         
-        static final int M_ID_TISHREI = 0;
-        static final int M_ID_CHESHVAN = 1;
-        static final int M_ID_KISLEV = 2;
-        static final int M_ID_TEVET = 3;
-        static final int M_ID_SHEVAT = 4;
-        static final int M_ID_ADAR = 5;
-        static final int M_ID_ADAR_I = 6;
-        static final int M_ID_ADAR_II = 7;
-        static final int M_ID_NISAN = 8;
-        static final int M_ID_IYAR = 9;
-        static final int M_ID_SIVAN = 10;
-        static final int M_ID_TAMMUZ = 11;
-        static final int M_ID_AV = 12;
-        static final int M_ID_ELUL = 13;
+        public static final int M_ID_TISHREI = 0;
+        public static final int M_ID_CHESHVAN = 1;
+        public static final int M_ID_KISLEV = 2;
+        public static final int M_ID_TEVET = 3;
+        public static final int M_ID_SHEVAT = 4;
+        public static final int M_ID_ADAR = 5;
+        public static final int M_ID_ADAR_I = 6;
+        public static final int M_ID_ADAR_II = 7;
+        public static final int M_ID_NISAN = 8;
+        public static final int M_ID_IYAR = 9;
+        public static final int M_ID_SIVAN = 10;
+        public static final int M_ID_TAMMUZ = 11;
+        public static final int M_ID_AV = 12;
+        public static final int M_ID_ELUL = 13;
 
 
         static final int[] MONTHS_DIVISION =
@@ -499,12 +499,18 @@ public class YDate
         {
             valid=setByDays(days);
         }
-        String dayString(boolean Heb)
+        public String dayString(boolean Heb)
         {
             if (!Heb)
                 return Integer.toString(this.day) + " in " + monthName(Heb) + " " + Integer.toString(this.year);
             else
-                return Format.HebIntString(this.day, true)+ " á" + monthName(Heb) + " " + Format.HebIntString(this.year,true);
+                return Format.HebIntString(this.day, false)+ " á" + monthName(Heb) + " " + Format.HebIntString(this.year,true);
+        }
+        public int NumberOfShabbats()
+        {
+            int year_diw=year_first_day%7;
+            int diy=YDate.getNext(YDate.SATURDAY,year_diw)-year_diw;
+            return (year_length-(diy)+6)/7;
         }
         public int ShmitaOrdinal()//unfortunatly we don't have Yovel.
         {
@@ -602,8 +608,12 @@ public class YDate
          */
         public int TkufotCycle()//when this method return 0, we need to do sun blessing in nissan.
         {
+            return TkufotCycle(daysSinceBeginning());
+        }
+        static public int TkufotCycle(int days)//when this method return 0, we need to do sun blessing in nissan.
+        {
             //10227=number of days in 28 years when year=365.25 days
-            return (daysSinceBeginning()-DAYS_OF_TKUFA_CYCLE_4117)%10227;
+            return (days-DAYS_OF_TKUFA_CYCLE_4117)%10227;
             //this date (1503540) is 19 in Nisan, 4117, wednesday
             //there is 112 tkofut in 28 year (4*28) or in 10227 days
             //you can find out which tkufa by tkufa=TkufotCycle()*112/10227
@@ -860,7 +870,7 @@ public class YDate
          * @param year_first_dw First week day of year (1..7)
          * @return A number for year type (1..14)
          */
-        static int ld_year_type (int size_of_year, int year_first_dw)
+        public static int ld_year_type (int size_of_year, int year_first_dw)
         {
             final int[] year_type_map =
                     {1, 0, 0, 2, 0, 3, 4, 0, 5, 0, 6, 7,
@@ -874,11 +884,11 @@ public class YDate
             int offset = (year_first_dw - 1) / 2;
             return year_type_map[4 * mo_year_type(size_of_year)+offset];
         }
-        int getYearTypeWeekDayLength()
+        public int getYearTypeWeekDayLength()
         {
             return ld_year_type(this.year_length, yearWeekDay());
         }
-        int yearWeekDay()//1- sunday,7-saturday
+        public int yearWeekDay()//1- sunday,7-saturday
         {
             return this.year_first_day%7+1;
         }
@@ -1096,24 +1106,51 @@ public class YDate
             maintainEvents();
         }
     }
-    public void setByGregorianYearMonthDay(int year,int month,int day)
+    public void setByDate(Date d)
     {
-        GregorianDate new_gd=new GregorianDate(gd);
-        new_gd.setByYearMonthDay(year, month, day);
-        int days=new_gd.daysSinceBeginning();
-        if (commonRange(days) && new_gd.valid)
-        {
-            gd=new_gd;
-            hd.setByDays(days);
-            maintainEvents();
-        }
-    }
-    private YDate(int gd_year,int gd_mon,int gd_day)
-    {
-        gd=new GregorianDate(gd_year, gd_mon, gd_day);
-        hd= new JewishDate(gd.daysSinceBeginning());
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(d);
+        int gd_day = cal.get(Calendar.DAY_OF_MONTH);
+        int gd_mon = cal.get(Calendar.MONTH) + 1;
+        int gd_year = cal.get(Calendar.YEAR);
+        setByGregorianYearMonthDay(gd_year,gd_mon,gd_day);
 
     }
+    public void setByGregorianYearMonthDay(int year,int month,int day)
+    {
+        if (gd.year()!= year || gd.month()!=month || gd.dayInMonth()!=day )
+        {
+            GregorianDate new_gd=new GregorianDate(gd);
+            new_gd.setByYearMonthDay(year, month, day);
+            int days=new_gd.daysSinceBeginning();
+            if (commonRange(days) && new_gd.valid)
+            {
+                gd=new_gd;
+                hd.setByDays(days);
+                maintainEvents();
+            }
+        }
+    }
+    private static final byte INIT_JD=0;
+    private static final byte INIT_JD_MID=1;
+    private static final byte INIT_GD=2;
+    private YDate(short year,byte mon,byte day, byte init)
+    {
+        switch(init)
+        {
+            case INIT_JD:
+                hd= new JewishDate(year, mon , day);
+            case INIT_JD_MID:
+                if (init==INIT_JD_MID)
+                    hd= new JewishDate(year,JewishDate.monthFromIDByYear(year, mon) , day);
+                gd=new GregorianDate(hd.daysSinceBeginning());
+                break;
+            default:
+                gd=new GregorianDate(year, mon, day);
+                hd= new JewishDate(gd.daysSinceBeginning());
+        }
+    }
+
     private YDate(JewishDate hd, GregorianDate gd, YDateAnnual events)
     {
         this.gd=new GregorianDate(gd);
@@ -1132,7 +1169,19 @@ public class YDate
         int gd_mon = cal.get(Calendar.MONTH) + 1;
         int gd_year = cal.get(Calendar.YEAR);
         //long t = d.getTime(); //milliseconds since 1.1.70 00:00 GMT+
-        return new YDate(gd_year,gd_mon,gd_day);
+        return new YDate((short)gd_year,(byte)gd_mon,(byte)gd_day,INIT_GD);
+    }
+    public static YDate createFromJewishMonthId(int year,int month_id,int day)
+    {
+        return new YDate((short)year,(byte)month_id,(byte)day,INIT_JD_MID);
+    }
+    public static YDate createFromJewish(int year,int month,int day)
+    {
+        return new YDate((short)year,(byte)month,(byte)day,INIT_JD);
+    }
+    public static YDate createFromGregorian(int year,int month,int day)
+    {
+        return new YDate((short)year,(byte)month,(byte)day,INIT_GD);
     }
     
     public static YDate getNow()
@@ -1158,6 +1207,18 @@ public class YDate
     public static int JdtoDays(double jd)//hour in utc
     {
         return (int)(jd+0.51-JULIAN_DAY_OFFSET);
+    }
+    public static String getTimeString(Date d, boolean seconds)
+    {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(d);
+        
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int min = cal.get(Calendar.MINUTE);
+        int sec = cal.get(Calendar.SECOND);
+        if (seconds)
+            return Format.TimeString(hour, min,sec);
+        return Format.TimeString(hour, min);
     }
 
 }

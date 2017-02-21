@@ -17,6 +17,7 @@ public abstract class DateShowers extends Canvas implements CommandCheck
     protected static final Command c_jumpToday = new Command("עבור להיום", Command.SCREEN, 2);
     protected static final Command c_showDayTimes = new Command("הצג זמנים", Command.SCREEN, 3);
     protected static final Command c_showMeida=new Command("מידע",Command.SCREEN,1);
+    protected static final Command c_showYearMeida=new Command("תכונות שנה",Command.SCREEN,2);
     protected static final Command c_showLimud=new Command("לימוד יומי",Command.SCREEN,3);
     protected static final Command c_showMolad=new Command("מולד הלבנה",Command.SCREEN,5);
 
@@ -25,6 +26,7 @@ public abstract class DateShowers extends Canvas implements CommandCheck
         addCommand(c_jumpToday);
         addCommand(c_showDayTimes);
         addCommand(c_showMeida);
+        addCommand(c_showYearMeida);
         addCommand(c_showLimud);
         addCommand(c_showMolad);
     }
@@ -62,6 +64,11 @@ public abstract class DateShowers extends Canvas implements CommandCheck
             showInformation();
             return true;
         }
+        if (c==c_showYearMeida)
+        {
+            showYearInformation();
+            return true;
+        }
         if (c==c_showMolad)
         {
             showMolad();
@@ -86,7 +93,7 @@ public abstract class DateShowers extends Canvas implements CommandCheck
         lstr+=omer;
         if (omer.length()>0)
             lstr+="\n";
-        if (m_dateCursor.hd.dayInMonth()==1 || m_dateCursor.hd.dayInMonth()==30)
+        if ((m_dateCursor.hd.dayInMonth()==1 && m_dateCursor.hd.dayInYear()!=0) || m_dateCursor.hd.dayInMonth()==30)
             lstr+="ראש חדש\n";
         else
         {
@@ -119,6 +126,42 @@ public abstract class DateShowers extends Canvas implements CommandCheck
         if (lstr.length()>0)
             maluach.showAlert("מידע", lstr, AlertType.INFO);
     }
+    protected void showYearInformation()
+    {
+        
+        
+        int year=m_dateCursor.hd.year();
+        String lstr=Format.HebIntString(year, true);
+        lstr+="\nשנה "+m_dateCursor.hd.ShmitaTitle();
+        int year_first_day=m_dateCursor.hd.yearFirstDay();
+        int year_length=m_dateCursor.hd.yearLength();
+        int year28=(year-4117)%28;
+        lstr+="\nשנה "+String.valueOf(year28+1)+" במחזור כ\"ח שנים";
+        if(year28==0)
+        {
+            lstr+="\nברכת החמה השנה";
+            int day_in_year=(10227-JewishDate.TkufotCycle(year_first_day)%10227);
+            JewishDate hama=new JewishDate(year_first_day+
+                                           day_in_year);
+            lstr+=" ב"+Format.HebIntString(hama.dayInMonth(), false)+" "+hama.monthName(true);
+            
+        }
+        int nineteen_cycle=(year-1)/19 + 1;
+        int nineteen_y=(year-1)%19 + 1;
+        lstr+="\nשנה "+Format.HebIntString(nineteen_y, false)+" במחזור "+Format.HebIntString(nineteen_cycle, false);
+        
+        lstr+="\nמספר שבתות "+String.valueOf(m_dateCursor.hd.NumberOfShabbats());
+        lstr+="\nמספר ימים בשנה "+String.valueOf(year_length);
+        if (year_length>=383)
+            lstr+="\nשנה מעוברת";
+        int day_of_pessah=JewishDate.calculateDayInYearByMonthId(year_length, JewishDate.M_ID_NISAN, 15)+m_dateCursor.hd.yearFirstDay();
+        final byte [] yeartype={8,11,21};
+        String yearsign=Format.alphabeta[(year_first_day%7)+1]+Format.alphabeta[yeartype[year_length%10-3]]+
+                        Format.alphabeta[(day_of_pessah%7)+1];
+        lstr+="\nסימן שנה "+yearsign;
+        if (lstr.length()>0)
+            maluach.showAlert("מידע", lstr, AlertType.INFO);
+    }
     protected void showMolad()
     {
         String lstr;
@@ -132,8 +175,8 @@ public abstract class DateShowers extends Canvas implements CommandCheck
     }
     protected String parasha()
     {
-        String il_parasha=TorahReading.GetSidra(m_dateCursor.hd,false);
-        String diasp=TorahReading.GetSidra(m_dateCursor.hd,true);
+        String il_parasha=TorahReading.GetSidra(m_dateCursor.hd,false,false);
+        String diasp=TorahReading.GetSidra(m_dateCursor.hd,true,false);
         
         String lstr="";
         if ((diasp.length()==0 || !il_parasha.equals(diasp))&& il_parasha.length()>0)
@@ -153,13 +196,13 @@ public abstract class DateShowers extends Canvas implements CommandCheck
         String lstr="";
         if (om>0)
         {
-            lstr="היום "+Format.HebIntString(om,true) + " לעמר (מערב אתמול)";
+            lstr="היום "+Format.HebIntString(om,false) + " לעמר (מערב אתמול)";
             
         }
         om+=1;
         if (om<50 && om>0)
         {
-            lstr+="\nבערב "+Format.HebIntString(om,true) + " לעמר";
+            lstr+="\nבערב "+Format.HebIntString(om,false) + " לעמר";
         }
         return lstr;
     }

@@ -130,7 +130,7 @@ public class TorahReading
     private static final int SHABAT_HACHODESH = 3;
     private static final int SHABAT_HAGADOL = 4;
     private static final int SHABAT_SHIRA = 5;
-    static String parshiot4(YDate h)
+    public static String parshiot4(YDate h)
     {
         YDate tweaked = YDate.createFrom(h);
         if (getShabbatBereshit(h.hd.yearLength(),h.hd.yearFirstDay())+15*7 == h.hd.daysSinceBeginning())
@@ -220,11 +220,12 @@ public class TorahReading
         
         return type;
     }
-    public static String GetSidra(JewishDate h, boolean diaspora)
+    public static String GetSidra(JewishDate h, boolean diaspora, boolean force)
     {
         int diy=h.dayInYear();
         int ydiw=h.yearFirstDay()%7;
         int simhat_torah=diaspora?23:22;
+        int succot=15;
         int day_type=getDayType(h);
         int pnum = 0;
         if (diy+1==simhat_torah)
@@ -237,13 +238,22 @@ public class TorahReading
             if ( (day_type & SHABBAT_DAY) != 0 )
                 pnum=sidra_array[diy/7];
             
-            if ( (day_type & HOL_DAY_MONDAY_THURSDAY) != 0  && (!(diaspora && (day_type & REGALIM_DIASPORA) != 0)))
+            if (( (day_type & HOL_DAY_MONDAY_THURSDAY) != 0  && (!(diaspora && (day_type & REGALIM_DIASPORA) != 0))) || force)
             {
-                int sat=(YDate.getNext(YDate.SATURDAY, diy+ydiw)-ydiw)/7;
-                while (pnum==0)
+                if (diy+1<=simhat_torah && diy+1>=succot)
                 {
-                    pnum=sidra_array[sat];
-                    sat++;
+                    pnum=54;
+                }
+                else
+                {
+                    int sat=YDate.getNext(YDate.SATURDAY, diy+ydiw)-ydiw;
+                    while (pnum==0)
+                    {
+                        pnum = sidra_array[sat/7];
+                        if (pnum==0 && (sat/7)==2)
+                            pnum=54;
+                        sat+=7;
+                    }
                 }
             }
         }
@@ -270,11 +280,11 @@ public class TorahReading
         }
         if ( (day_type & TAANIT) != 0)
         {
-            lstr="\nויחל משה";
+            lstr+="\nויחל משה";
         }
-        if ( (day_type & ROSH_HODESH) == ROSH_HODESH)
+        if ( (day_type) == ROSH_HODESH)
         {
-            lstr="\nקריאה לר\"ח";
+            lstr+="\nקריאה לר\"ח";
         }
         return lstr;
     }
@@ -306,6 +316,7 @@ public class TorahReading
         
         int diy=YDate.getNext(YDate.SATURDAY,year_diw)-year_diw;
         int shabats=(year_length-(diy)+6)/7;
+        shabats++; // one for the next year
         byte [] reading=new byte[shabats];
         sidra_reading[diaspora?0:1][ldt-1]=reading;
         if ((year_diw>>2) == 0) //if monday or tuesday - pat bag

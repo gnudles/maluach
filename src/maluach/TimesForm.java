@@ -9,6 +9,7 @@ import javax.microedition.lcdui.TextField;
 public class TimesForm extends Form implements ScreenView
 {
     TextField ClockType;
+    TextField AlotHashahar90;
     TextField AlotHashahar;
     TextField Sheyakir;
     TextField Zriha;
@@ -48,6 +49,8 @@ public class TimesForm extends Form implements ScreenView
         super("");
         ClockType=new TextField("הפרש שעות",null,5,TextField.UNEDITABLE );
         ClockType.setLayout(TextField.LAYOUT_RIGHT);
+        AlotHashahar90=new TextField("עלות השחר (90)",null,5,TextField.UNEDITABLE );
+        AlotHashahar90.setLayout(TextField.LAYOUT_RIGHT);
         AlotHashahar=new TextField("עלות השחר",null,5,TextField.UNEDITABLE );
         AlotHashahar.setLayout(TextField.LAYOUT_RIGHT);
         Sheyakir=new TextField("משיכיר",null,5,TextField.UNEDITABLE );
@@ -98,6 +101,8 @@ public class TimesForm extends Form implements ScreenView
                 MaluachPreferences.GetLatitude(), -MaluachPreferences.GetLongitude(), new TzDstManager());
         ClockType.setString(Format.Min2Str(sc.correctTz(4*60)-4*60));
         super.append(ClockType);
+        AlotHashahar90.setString(Format.Min2Str(sc.correctTz(sc.getDawn90())));
+        super.append(AlotHashahar90);
         AlotHashahar.setString(Format.Min2Str(sc.correctTz(sc.getDawn())));
         super.append(AlotHashahar);
         Sheyakir.setString(Format.Min2Str(sc.correctTz(sc.getRecognize())));
@@ -138,12 +143,12 @@ public class TimesForm extends Form implements ScreenView
         }
         Shkia.setString(Format.Min2Str(sc.correctTz(sc.getSunset())));
         super.append(Shkia);
-        TzetHakohavim.setString(Format.Min2Str(sc.correctTz(sc.getVisibleStars())));
+        TzetHakohavim.setString(Format.Min2Str(sc.correctTz(sc.getVisibleStarsGeonim())));
         super.append(TzetHakohavim);
 
         if (dateCursor.hd.dayInWeek()==7)
         {
-            TzetShabat.setString(Format.Min2Str(sc.correctTz(sc.getSunset()+40)));
+            TzetShabat.setString(Format.Min2Str(sc.correctTz(sc.getVisibleStars())));
             super.append(TzetShabat);
         }
         TzetHakohavim_ratam.setString(Format.Min2Str(sc.correctTz(sc.getRabenuTam())));
