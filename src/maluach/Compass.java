@@ -17,8 +17,8 @@ public final class Compass extends Canvas implements DisplayBack, ScreenView
 
     private double base_rotation;
     private double rotation;
-    private final double jerusalemLongitude = 35.23472222222;
-    private final double jerusalemLatitude = 31.77694444444;
+    private final double jerusalemLongitude = 35.234722;
+    private final double jerusalemLatitude = 31.776944;
     private boolean hasSensor;
     private boolean tooClose;
     private float sunElev;
@@ -67,16 +67,18 @@ public final class Compass extends Canvas implements DisplayBack, ScreenView
         todays.setTime(new Date());
         double deltaT=65;//seconds
         float timezone=TzDstManager.GetTimeZoneAt(new Date());
+        
         double jd=SunMonPosition.calcJD(todays.get(Calendar.DAY_OF_MONTH), todays.get(Calendar.MONTH)+1, todays.get(Calendar.YEAR));
         //jd=SunMonPosition.calcJD(6, 4, todays.get(Calendar.YEAR));
         int hour=todays.get(Calendar.HOUR_OF_DAY);
         int minute=todays.get(Calendar.MINUTE);
         int second=todays.get(Calendar.SECOND);
+        
         double localtime = (hour/*-timezone*/+minute/60.0
                            +(second)/3600.0)/24.0;
         jd+=localtime;
         double TDT=jd+deltaT/3600.0/24.0;
-        time_now=Format.Min2Str(((hour+timezone)%24)*60+minute);
+        
         double gmst=SunMonPosition.gMST(jd);
         double lat = MaluachPreferences.GetLatitude()*SunMonPosition.DEG2RAD; // geodetic latitude of observer on WGS84
         double lon = MaluachPreferences.GetLongitude()*SunMonPosition.DEG2RAD; // geodetic latitude of observer on WGS84
@@ -92,6 +94,8 @@ public final class Compass extends Canvas implements DisplayBack, ScreenView
         sunAz=(float)sunCoor.az;//radians
         moonElev=(float)(moonCoor.alt+SunMonPosition.refraction(moonCoor.alt)*SunMonPosition.DEG2RAD);//radians
         moonAz=(float)moonCoor.az;
+        
+        time_now=Format.Min2Str(((hour+timezone)%24)*60+minute);
         
     }
 

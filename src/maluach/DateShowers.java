@@ -109,7 +109,6 @@ public abstract class DateShowers extends Canvas implements CommandCheck
         {
             lstr+="סגולת פרשת המן שניים מקרא ואחד תרגום\n";
         }
-        lstr+="שנה "+m_dateCursor.hd.ShmitaTitle()+"\n";
         int day_tkufa=m_dateCursor.hd.dayInTkufa();
         int day_mazal=m_dateCursor.hd.dayInMazal();
         lstr+="יום "+Integer.toString(day_tkufa+1)+" ל" +m_dateCursor.hd.TkufaName(true)+"\n";
@@ -123,13 +122,19 @@ public abstract class DateShowers extends Canvas implements CommandCheck
         if (day_tkufa!=0 && day_mazal == 0)
             lstr+="חילוף מזל "+m_dateCursor.hd.MazalBeginning(new TzDstManager())+"\n";
         lstr+="ברכת החמה בעוד "+Integer.toString((10227-m_dateCursor.hd.TkufotCycle())%10227)+" יום\n";
+        if (m_dateCursor.hd.monthID()==JewishDate.M_ID_NISAN)
+        {
+            lstr+="ברכת האילנות\n";
+            if (m_dateCursor.hd.dayInMonth()<=13)
+            {
+                lstr+="קרבנות הנשיאים\n";
+            }
+        }
         if (lstr.length()>0)
             maluach.showAlert("מידע", lstr, AlertType.INFO);
     }
     protected void showYearInformation()
-    {
-        
-        
+    {   
         int year=m_dateCursor.hd.year();
         String lstr=Format.HebIntString(year, true);
         lstr+="\nשנה "+m_dateCursor.hd.ShmitaTitle();
@@ -152,13 +157,16 @@ public abstract class DateShowers extends Canvas implements CommandCheck
         
         lstr+="\nמספר שבתות "+String.valueOf(m_dateCursor.hd.NumberOfShabbats());
         lstr+="\nמספר ימים בשנה "+String.valueOf(year_length);
-        if (year_length>=383)
-            lstr+="\nשנה מעוברת";
-        int day_of_pessah=JewishDate.calculateDayInYearByMonthId(year_length, JewishDate.M_ID_NISAN, 15)+m_dateCursor.hd.yearFirstDay();
-        final byte [] yeartype={8,11,21};
-        String yearsign=Format.alphabeta[(year_first_day%7)+1]+Format.alphabeta[yeartype[year_length%10-3]]+
-                        Format.alphabeta[(day_of_pessah%7)+1];
+        String yearsign=m_dateCursor.hd.yearSign();
         lstr+="\nסימן שנה "+yearsign;
+        int yeziat_mizraim=year-JewishDate.YEZIAT_MIZRAIM;
+        int horban_bait_rishon=year-JewishDate.HORBAN_BAIT_RISHON;
+        int minian_shtarot=year-JewishDate.MINIAN_SHTAROT;
+        int horban_bait_sheni=year-JewishDate.HORBAN_BAIT_SHENI;
+        lstr+="\n"+yeziat_mizraim+" ("+Format.HebIntString(yeziat_mizraim, true)+") ליציאת מצרים ולמתן תורה";
+        lstr+="\n"+horban_bait_rishon+" ("+Format.HebIntString(horban_bait_rishon, true)+") לחורבן בית ראשון";
+        lstr+="\n"+horban_bait_sheni+" ("+Format.HebIntString(horban_bait_sheni, true)+") לחורבן בית שני";
+        lstr+="\n"+minian_shtarot+" ("+Format.HebIntString(minian_shtarot, true)+") למנין שטרות";
         if (lstr.length()>0)
             maluach.showAlert("מידע", lstr, AlertType.INFO);
     }
@@ -171,7 +179,10 @@ public abstract class DateShowers extends Canvas implements CommandCheck
     
     protected void showLimud()
     {
-        maluach.showAlert("דף יומי", DailyLimud.getDafYomi(m_dateCursor.hd.daysSinceBeginning(), true), AlertType.INFO);
+        String lstr;
+        lstr="דף יומי "+DailyLimud.getDafYomi(m_dateCursor.hd.daysSinceBeginning(), true);
+        lstr+="\nמשנה יומית "+DailyLimud.MishnaYomit(m_dateCursor.hd.daysSinceBeginning(),true, true);
+        maluach.showAlert("לימוד יומי", lstr, AlertType.INFO);
     }
     protected String parasha()
     {

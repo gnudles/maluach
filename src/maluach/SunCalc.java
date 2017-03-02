@@ -11,7 +11,7 @@ public class SunCalc
     private double JD;
     YDate.TimeZoneProvider timezone;
     private double noonEqTime, noonSolarDec, firstHourAngle, noonmin, risemin, setmin;
-    private double risemin_16, setmin_16, setmin_8, setmin_6,setmin_4;
+    private double risemin_16, setmin_16, setmin_8, setmin_6;
     private double risemin_11,risemin_19;
 
     public SunCalc(double JD, double latitude, double longitude, YDate.TimeZoneProvider timezone)
@@ -37,7 +37,6 @@ public class SunCalc
         setmin_16=calcSunUTC(true,106.01);
         setmin_8=calcSunUTC(true,98.5);
         setmin_6=calcSunUTC(true,95.95);
-        //setmin_4=calcSunUTC(true,94.61);
         risemin_11=calcSunUTC(false,101.5);
         risemin_19=calcSunUTC(false,109.75);
 
@@ -102,7 +101,7 @@ public class SunCalc
         return (risemin-72)+4*((setmin +72) - (risemin-72))/12.0 ;
     }
 
-    public double getMinhaGdola2()// half day-hour (shaot zmaniot) after the noon
+    public double getMinhaGdolaZmanit()// half day-hour (shaot zmaniot) after the noon
     {
         return noonmin + 1 * (setmin - noonmin) / 12.0;//
     }
@@ -124,15 +123,23 @@ public class SunCalc
     {
         return setmin_8;
     }
-    public double getVisibleStarsGeonim()// 4.61 degrees
+    public double getVisibleStarsGeonim()// 5.95 degrees
     {
         return setmin_6;
     }
     
-    /*public double getVisibleStars()// 24 minutes zmaniot after the sunset
+    public double getVisibleStarsZmaniot24()// 24*3/4 minutes zmaniot after the sunset
     {
-        return setmin + 1 * (setmin - noonmin) / 15.0;
-    }*/
+        return setmin + (setmin - noonmin) / 20.0;//(24.0*3/4/60)/6=1/20
+    }
+    public double getVisibleStarsZmaniot18()// 18*3/4 minutes zmaniot after the sunset
+    {
+        return setmin + (setmin - noonmin)*(18.0*3/4/60)/6;
+    }
+    public double getVisibleStarsZmaniot225()// 22.5*3/4 minutes zmaniot after the sunset
+    {
+        return setmin + (setmin - noonmin)*(22.5*3/4/60)/6;
+    }
     public double getBiurHametz()
     {
         return (risemin-72)+5*((setmin +72) - (risemin-72))/12.0;//

@@ -4,7 +4,18 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/orr/maluach/src/maluach/TextsList.java</file>
+            <file>file:/home/orr/maluach/src/maluach/DateShowers.java</file>
+            <file>file:/home/orr/maluach/src/maluach/TimesForm.java</file>
+            <file>file:/home/orr/maluach/src/maluach/DailyLimud.java</file>
+            <file>file:/home/orr/maluach/src/maluach/YDate.java</file>
+            <file>file:/home/orr/maluach/src/maluach/Compass.java</file>
+            <file>file:/home/orr/maluach/src/maluach/SunCalc.java</file>
+            <file>file:/home/orr/maluach/src/maluach/SunTimes.java</file>
+            <file>file:/home/orr/maluach/src/maluach/Format.java</file>
+            <file>file:/home/orr/maluach/src/maluach/MaluachPreferences.java</file>
+            <file>file:/home/orr/maluach/src/maluach/TorahReading.java</file>
+            <file>file:/home/orr/maluach/src/maluach/DateSelector.java</file>
+            <file>file:/home/orr/maluach/src/maluach/SunMonPosition.java</file>
         </group>
     </open-files>
 </project-private>

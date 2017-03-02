@@ -364,7 +364,11 @@ public class YDate
         public static final int M_ID_TAMMUZ = 11;
         public static final int M_ID_AV = 12;
         public static final int M_ID_ELUL = 13;
-
+        
+        public static final int YEZIAT_MIZRAIM = 2449;
+        public static final int MINIAN_SHTAROT = 3449;
+        public static final int HORBAN_BAIT_RISHON = 3339;
+        public static final int HORBAN_BAIT_SHENI = 3829;
 
         static final int[] MONTHS_DIVISION =
         {
@@ -609,6 +613,13 @@ public class YDate
         public int TkufotCycle()//when this method return 0, we need to do sun blessing in nissan.
         {
             return TkufotCycle(daysSinceBeginning());
+        }
+        public String yearSign()
+        {
+            final byte [] yeartype={8,11,21};
+            int day_of_pessah=JewishDate.calculateDayInYearByMonthId(year_length, JewishDate.M_ID_NISAN, 15)+year_first_day;
+            return Format.alphabeta[(year_first_day%7)+1]+Format.alphabeta[yeartype[year_length%10-3]]+
+                        Format.alphabeta[(day_of_pessah%7)+1]+((year_length>=383)?" מעוברת":" פשוטה");
         }
         static public int TkufotCycle(int days)//when this method return 0, we need to do sun blessing in nissan.
         {
