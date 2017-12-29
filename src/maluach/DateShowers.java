@@ -97,7 +97,7 @@ public abstract class DateShowers extends Canvas implements CommandCheck
             lstr+="ראש חדש\n";
         else
         {
-            if (m_dateCursor.hd.dayInMonth()>=23 && m_dateCursor.hd.dayInWeek()==7)
+            if (m_dateCursor.hd.dayInMonth()>=23 && m_dateCursor.hd.dayInMonth() < 30 && m_dateCursor.hd.dayInWeek()==7 && m_dateCursor.hd.monthID()!=JewishDate.M_ID_ELUL)
                 lstr+="מברכין החדש\n";
         }
         if (m_dateCursor.hd.dayInMonth()==16 && m_dateCursor.hd.monthID()==JewishDate.M_ID_TISHREI &&
