@@ -132,7 +132,8 @@ public class Format
             if (n==0 || a>10)
                 out+=" אלפים ";
         }
-        out+=HebIntSubString(n,true,true);
+        if (n>0)
+            out+=HebIntSubString(n,true,true);
         
         return out;
     }

@@ -58,8 +58,22 @@ public class YDate
     public static final class GregorianDate
     {
         static final int DAYS_IN_400 = 146097;
+        /**
+         * Number of days in regular four Gregorian years. The calculation is as
+         * follows: Every regular four years we have an extra day in February.
+         * To summerize this: 3*366+1*365=1461.
+         */
         static final int DAYS_IN_4 = 1461;
+        /**
+         * The day of Jan. 1 1600 in the "beginning count". This constant is
+         * important because for simplicity, we start all the calculations, only
+         * after that date. Also this date starts a new cycle of 400 years.
+         */
         static final int DAYS_OF_1600 = 1957451;// days since beginning up to year 1.1.1600 (14 in tevet, 5360)
+        /**
+         * The day of Jan. 1 2300 in the "beginning count". I limited the date
+         * calculation to that date.
+         */
         static final int DAYS_OF_2300 = 2213121;
         
         
@@ -1049,6 +1063,25 @@ public class YDate
                 return years+1;
             return years;
         }
+        public boolean isKippurDay() {
+            return dayInYear() == 9; // 10 in Tishrei.
+        }        /**
+         * if nine av is nidcha (postponed), return ten av.
+         * @return the day in year of the nine av fast day
+         */
+        public int nineAvDayInYear() {
+            int nine_av = YDate.JewishDate.calculateDayInYearByMonthId(year_length, M_ID_AV, 9); // 9 in Av.
+            if ((nine_av + year_first_day) % 7 == SATURDAY) {
+                ++nine_av;
+            }
+            return nine_av;
+        }
+
+        public boolean isNineAv() {
+
+            return dayInYear() == nineAvDayInYear(); // 9 in Av.
+        }
+        
     }
 
     public JewishDate hd;

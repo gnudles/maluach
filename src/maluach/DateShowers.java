@@ -180,8 +180,9 @@ public abstract class DateShowers extends Canvas implements CommandCheck
     protected void showLimud()
     {
         String lstr;
-        lstr="דף יומי "+DailyLimud.getDafYomi(m_dateCursor.hd.daysSinceBeginning(), true);
+        lstr="דף יומי "+DailyLimud.getBavliDafYomi(m_dateCursor.hd.daysSinceBeginning(), true);
         lstr+="\nמשנה יומית "+DailyLimud.MishnaYomit(m_dateCursor.hd.daysSinceBeginning(),true, true);
+        lstr+="\nירושלמי "+DailyLimud.getYerushalmiDafYomi(m_dateCursor.hd.daysSinceBeginning(),true);
         maluach.showAlert("לימוד יומי", lstr, AlertType.INFO);
     }
     protected String parasha()
